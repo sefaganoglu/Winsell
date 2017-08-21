@@ -1,0 +1,10 @@
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.deps.json
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.runtimeconfig.json
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.runtimeconfig.dev.json
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.dll
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.pdb
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.csproj.CoreCompileInputs.cache
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.AssemblyInfoInputs.cache
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.AssemblyInfo.cs
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.dll
+F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.pdb
