@@ -8,3 +8,14 @@ F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.A
 F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.AssemblyInfo.cs
 F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.dll
 F:\SEFA\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.pdb
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.deps.json
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.runtimeconfig.json
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.runtimeconfig.dev.json
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.API.pdb
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.csproj.CoreCompileInputs.cache
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.AssemblyInfoInputs.cache
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.AssemblyInfo.cs
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.pdb
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.csprojResolveAssemblyReference.cache
