@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using Winsell.Hopi.API.Models;
 using System.Configuration;
 using System.Drawing;
+using Winsell.Hopi.Data;
 
 namespace Winsell.Hopi.API.Controllers
 {
@@ -200,12 +201,25 @@ namespace Winsell.Hopi.API.Controllers
             return listAdisyon;
         }
 
-        [HttpGet("hesapBol")]
-        public DurumResponse GetHesapBol(HesapBolmeRequest hesapBolmeRequest)
+        [HttpPost("hesapBol")]
+        public DurumResponse SetHesapBol(HesapBolmeRequest hesapBolmeRequest)
         {
             DurumResponse hesapBolmeResponse = new DurumResponse();
 
             hesapBolmeResponse.basarili = false;
+
+            //using (HopiContext context = new HopiContext())
+            //{
+            //    var result = context.RESCEKS.Where(x => x.CEKNO == 1).ToList();
+
+            //    context.RESCEKS.Take(5); 
+
+            //    for (int i = 0; i < result.Count; i++)
+            //    {
+            //        result[i].CEKNO = 
+            //    }
+            //}
+
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
@@ -277,7 +291,7 @@ namespace Winsell.Hopi.API.Controllers
 
             return hesapBolmeResponse;
         }
-        
+
         [HttpGet("kampanyalar")]
         public List<Kampanya> GetKampanyalar(KampanyaRequest kampanyaRequest)
         {
@@ -359,7 +373,7 @@ namespace Winsell.Hopi.API.Controllers
 
             return listKampanya;
         }
-        
+
         [HttpGet("kullaniciGirisi")]
         public Kullanici GetKullaniciGirisi(string sifre)
         {
@@ -390,7 +404,7 @@ namespace Winsell.Hopi.API.Controllers
             {
                 kullanici.durum.hataMesaji = ex.Message;
             }
-            
+
             return kullanici;
         }
     }
