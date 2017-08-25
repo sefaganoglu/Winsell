@@ -373,7 +373,6 @@
             this.colSec.Name = "colSec";
             this.colSec.ReadOnly = true;
             this.colSec.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.colSec.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.colSec.TrueValue = "1";
             this.colSec.Width = 30;
             // 
@@ -383,6 +382,7 @@
             this.colKampanya.HeaderText = "Kampanya";
             this.colKampanya.Name = "colKampanya";
             this.colKampanya.ReadOnly = true;
+            this.colKampanya.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.colKampanya.Width = 75;
             // 
             // colAciklama
@@ -391,6 +391,7 @@
             this.colAciklama.HeaderText = "Açıklama";
             this.colAciklama.Name = "colAciklama";
             this.colAciklama.ReadOnly = true;
+            this.colAciklama.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.colAciklama.Width = 300;
             // 
             // colKazanc

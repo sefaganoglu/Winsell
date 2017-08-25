@@ -175,8 +175,8 @@ namespace Winsell.Hopi
                                 if (!string.IsNullOrWhiteSpace(reader["KAMPANYA"].TOSTRING()))
                                     urun.kampanyaKodlari = reader["KAMPANYA"].TOSTRING().Split(',').ToList();
                                 urun.kdv = reader["KDV"].TOINT();
-                                urun.miktar = reader["MIKTAR"].TODECIMAL();
-                                urun.tutar = reader["TUTAR"].TODECIMAL();
+                                urun.miktar = reader["MIKTAR"].TODECIMAL().ROUNDTWO();
+                                urun.tutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
                                 urun.x = reader["X"].TOINT();
                                 urun.siraNo = reader["SIRANO"].TOINT();
 
@@ -185,8 +185,8 @@ namespace Winsell.Hopi
                                     foreach (string strKampanyaKodu in urun.kampanyaKodlari)
                                     {
                                         var kampanyaKodu = strKampanyaKodu;
-                                        var indirimOrani = kampanyaBilgisi.kampanyalar.Where(p => p.kampanyaKodu == kampanyaKodu).Sum(p => p.indirimOrani); //.TODECIMAL();
-                                        urun.indirimTutari = reader["TUTAR"].TODECIMAL() * indirimOrani.TODECIMAL() / 100;
+                                        var indirimOrani = kampanyaBilgisi.kampanyalar.Where(p => p.kampanyaKodu == kampanyaKodu).Sum(p => p.indirimOrani).ROUNDTWO(); //.TODECIMAL();
+                                        urun.indirimTutari += ((reader["TUTAR"].TODECIMAL().ROUNDTWO() - urun.indirimTutari) * indirimOrani.TODECIMAL().ROUNDTWO() / 100).ROUNDTWO();
                                     }
                                 }
 
@@ -215,8 +215,10 @@ namespace Winsell.Hopi
                             foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
                             {
                                 clsHopi.Kampanya kampanyaHopi = new clsHopi.Kampanya();
-                                kampanyaHopi.paracikKazanc = kampanya.kazanc;
+                                kampanyaHopi.paracikKazanc = kampanya.paracikKazanc;
+                                kampanyaHopi.indirimTutari = kampanya.indirimTutari;
                                 kampanyaHopi.kampanyaKodu = kampanya.kampanyaKodu;
+                                kampanyaHopi.kampanyaTipi = (clsHopi.KampanyaTipi)kampanya.kampanyaTipi;
                                 alisverisBilgisi.kampanyalar.Add(kampanyaHopi);
                             }
 
@@ -224,101 +226,101 @@ namespace Winsell.Hopi
 
                             if (clsHopiIslem.setAlisverisBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, alisverisBilgisi))
                             {
-                                cmd.Transaction = cnn.BeginTransaction();
+                                //cmd.Transaction = cnn.BeginTransaction();
 
-                                try
-                                {
-                                    decimal dIskontoToplami = 0;
-                                    cmd.CommandText = "UPDATE RESCEK SET ISKONTOTUTARI = ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT)) + @ISKONTOTUTARI, BIRDID = @BIRDID, KAMPANYA_KODU = @KAMPANYA_KODU WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND X = @X AND STOKKODU = @STOKKODU AND SIRANO = @SIRANO";
-                                    foreach (clsHopi.Urun urun in alisverisBilgisi.urunler)
-                                    {
-                                        if (urun.kampanyaKodlari.Count > 0)
-                                        {
-                                            string strUrunKampanyalar = urun.kampanyaKodlari.Aggregate((i, j) => i + ',' + j);
+                                //try
+                                //{
+                                //    decimal dIskontoToplami = 0;
+                                //    cmd.CommandText = "UPDATE RESCEK SET ISKONTOTUTARI = ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT)) + @ISKONTOTUTARI, BIRDID = @BIRDID, KAMPANYA_KODU = @KAMPANYA_KODU WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND X = @X AND STOKKODU = @STOKKODU AND SIRANO = @SIRANO";
+                                //    foreach (clsHopi.Urun urun in alisverisBilgisi.urunler)
+                                //    {
+                                //        if (urun.kampanyaKodlari.Count > 0)
+                                //        {
+                                //            string strUrunKampanyalar = urun.kampanyaKodlari.Aggregate((i, j) => i + ',' + j);
 
-                                            cmd.Parameters.AddWithValue("@ISKONTOTUTARI", Math.Round(urun.indirimTutari, 2));
-                                            cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
-                                            cmd.Parameters.AddWithValue("@KAMPANYA_KODU", strUrunKampanyalar);
-                                            cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                            cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                            cmd.Parameters.AddWithValue("@X", urun.x);
-                                            cmd.Parameters.AddWithValue("@STOKKODU", urun.barkod);
-                                            cmd.Parameters.AddWithValue("@SIRANO", urun.siraNo);
-                                            cmd.ExecuteNonQuery();
-                                            cmd.Parameters.Clear();
+                                //            cmd.Parameters.AddWithValue("@ISKONTOTUTARI", Math.Round(urun.indirimTutari, 2));
+                                //            cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
+                                //            cmd.Parameters.AddWithValue("@KAMPANYA_KODU", strUrunKampanyalar);
+                                //            cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                //            cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                //            cmd.Parameters.AddWithValue("@X", urun.x);
+                                //            cmd.Parameters.AddWithValue("@STOKKODU", urun.barkod);
+                                //            cmd.Parameters.AddWithValue("@SIRANO", urun.siraNo);
+                                //            cmd.ExecuteNonQuery();
+                                //            cmd.Parameters.Clear();
 
-                                            dIskontoToplami += Math.Round(urun.indirimTutari, 2);
-                                        }
-                                    }
+                                //            dIskontoToplami += Math.Round(urun.indirimTutari, 2);
+                                //        }
+                                //    }
 
-                                    if (dIskontoToplami != 0)
-                                    {
-                                        cmd.CommandText = "INSERT INTO ODEME_TEMP " +
-                                                          "SELECT @CEKNO, ACIKLAMA, @SEPARATOR + '00', @ISKONTO, '0', KOD, @ISK FROM KRDKRT WHERE KOD = @KOD";
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.Parameters.AddWithValue("@SEPARATOR", clsGenel.numberSeparator);
-                                        cmd.Parameters.AddWithValue("@ISKONTO", dIskontoToplami.TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
-                                        cmd.Parameters.AddWithValue("@ISK", dIskontoToplami.TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
-                                        cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiIndirimOdemeKodu);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-                                    }
+                                //    if (dIskontoToplami != 0)
+                                //    {
+                                //        cmd.CommandText = "INSERT INTO ODEME_TEMP " +
+                                //                          "SELECT @CEKNO, ACIKLAMA, @SEPARATOR + '00', @ISKONTO, '0', KOD, @ISK FROM KRDKRT WHERE KOD = @KOD";
+                                //        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                //        cmd.Parameters.AddWithValue("@SEPARATOR", clsGenel.numberSeparator);
+                                //        cmd.Parameters.AddWithValue("@ISKONTO", dIskontoToplami.TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
+                                //        cmd.Parameters.AddWithValue("@ISK", dIskontoToplami.TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
+                                //        cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiIndirimOdemeKodu);
+                                //        cmd.ExecuteNonQuery();
+                                //        cmd.Parameters.Clear();
+                                //    }
 
-                                    //HOPI ODEME KAYDI
-                                    if (alisverisBilgisi.kullanilacakParacik != 0)
-                                    {
-                                        cmd.CommandText = "INSERT INTO RESCEK (MASANO, TARIH, ISKONTOTUTARI1, CEKNO, KARTKODU, SATICIKODU, KOD, ALACAK, MASANOSTR, KAYNAK, HESAPADI, INDIRIM_CARISI, BIRDID) " +
-                                                          "SELECT @MASANO, @TARIH, @ISKONTOTUTARI1, @CEKNO, KOD, @SATICIKODU, 'A', @ALACAK, @MASANOSTR, @KAYNAK, CAST('' AS VARCHAR), CAST('' AS VARCHAR), @BIRDID  FROM KRDKRT WHERE KOD = @KOD";
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@TARIH", DateTime.Now.Date);
-                                        cmd.Parameters.AddWithValue("@ISKONTOTUTARI1", (0).TODECIMAL());
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.Parameters.AddWithValue("@SATICIKODU", clsGenel.kullaniciKodu);
-                                        cmd.Parameters.AddWithValue("@ALACAK", alisverisBilgisi.kullanilacakParacik);
-                                        cmd.Parameters.AddWithValue("@MASANOSTR", pnlIslemler.AccessibleName);
-                                        cmd.Parameters.AddWithValue("@KAYNAK", 9);
-                                        cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
-                                        cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiOdemeKodu);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-                                    }
+                                //    //HOPI ODEME KAYDI
+                                //    if (alisverisBilgisi.kullanilacakParacik != 0)
+                                //    {
+                                //        cmd.CommandText = "INSERT INTO RESCEK (MASANO, TARIH, ISKONTOTUTARI1, CEKNO, KARTKODU, SATICIKODU, KOD, ALACAK, MASANOSTR, KAYNAK, HESAPADI, INDIRIM_CARISI, BIRDID) " +
+                                //                          "SELECT @MASANO, @TARIH, @ISKONTOTUTARI1, @CEKNO, KOD, @SATICIKODU, 'A', @ALACAK, @MASANOSTR, @KAYNAK, CAST('' AS VARCHAR), CAST('' AS VARCHAR), @BIRDID  FROM KRDKRT WHERE KOD = @KOD";
+                                //        cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                //        cmd.Parameters.AddWithValue("@TARIH", DateTime.Now.Date);
+                                //        cmd.Parameters.AddWithValue("@ISKONTOTUTARI1", (0).TODECIMAL());
+                                //        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                //        cmd.Parameters.AddWithValue("@SATICIKODU", clsGenel.kullaniciKodu);
+                                //        cmd.Parameters.AddWithValue("@ALACAK", alisverisBilgisi.kullanilacakParacik);
+                                //        cmd.Parameters.AddWithValue("@MASANOSTR", pnlIslemler.AccessibleName);
+                                //        cmd.Parameters.AddWithValue("@KAYNAK", 9);
+                                //        cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
+                                //        cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiOdemeKodu);
+                                //        cmd.ExecuteNonQuery();
+                                //        cmd.Parameters.Clear();
+                                //    }
 
 
-                                    //RESHRY KAYDI
-                                    cmd.CommandText = "SELECT SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Bakiye FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    if (cmd.ExecuteScalar().TODECIMAL() <= 0)
-                                    {
-                                        cmd.Parameters.Clear();
+                                //    //RESHRY KAYDI
+                                //    cmd.CommandText = "SELECT SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Bakiye FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                //    cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                //    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                //    if (cmd.ExecuteScalar().TODECIMAL() <= 0)
+                                //    {
+                                //        cmd.Parameters.Clear();
 
-                                        cmd.CommandText = "INSERT INTO RESHRY (ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, GUN_SIP_NO, HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, KISI_SAYISI, KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, R_A, SAAT, SATICIKODU, SATIS_TURU, SFIY, SIPARISNO, SIPARIS_YERI, SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI) " +
-                                                          "SELECT ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, ISNULL(GUN_SIP_NO, (SELECT TOP 1 GUN_SIP_NO FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND GUN_SIP_NO IS NOT NULL)), HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, ISNULL(KISI_SAYISI, (SELECT TOP 1 KISI_SAYISI FROM RESYAZ WHERE CEKNO = RC.CEKNO)), KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, @R_A, @SAAT, SATICIKODU, ISNULL(SATIS_TURU, (SELECT SATIS_TURU FROM KRDKRT WHERE KOD = (SELECT TOP 1 KARTKODU FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KARTKODU IS NOT NULL))), SFIY, SIPARISNO, @SIPARIS_YERI, ISNULL(SIRKET_KODU, CAST('' AS VARCHAR)) AS SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, ISNULL(X, SIRANO) AS X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                        cmd.Parameters.AddWithValue("@R_A", "R");
-                                        cmd.Parameters.AddWithValue("@SAAT", DateTime.Now.ToString("HH:mm:ss"));
-                                        cmd.Parameters.AddWithValue("@SIPARIS_YERI", "R");
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
+                                //        cmd.CommandText = "INSERT INTO RESHRY (ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, GUN_SIP_NO, HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, KISI_SAYISI, KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, R_A, SAAT, SATICIKODU, SATIS_TURU, SFIY, SIPARISNO, SIPARIS_YERI, SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI) " +
+                                //                          "SELECT ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, ISNULL(GUN_SIP_NO, (SELECT TOP 1 GUN_SIP_NO FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND GUN_SIP_NO IS NOT NULL)), HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, ISNULL(KISI_SAYISI, (SELECT TOP 1 KISI_SAYISI FROM RESYAZ WHERE CEKNO = RC.CEKNO)), KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, @R_A, @SAAT, SATICIKODU, ISNULL(SATIS_TURU, (SELECT SATIS_TURU FROM KRDKRT WHERE KOD = (SELECT TOP 1 KARTKODU FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KARTKODU IS NOT NULL))), SFIY, SIPARISNO, @SIPARIS_YERI, ISNULL(SIRKET_KODU, CAST('' AS VARCHAR)) AS SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, ISNULL(X, SIRANO) AS X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                //        cmd.Parameters.AddWithValue("@R_A", "R");
+                                //        cmd.Parameters.AddWithValue("@SAAT", DateTime.Now.ToString("HH:mm:ss"));
+                                //        cmd.Parameters.AddWithValue("@SIPARIS_YERI", "R");
+                                //        cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                //        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                //        cmd.ExecuteNonQuery();
+                                //        cmd.Parameters.Clear();
 
-                                        cmd.CommandText = "DELETE FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-                                    }
+                                //        cmd.CommandText = "DELETE FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                //        cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                //        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                //        cmd.ExecuteNonQuery();
+                                //        cmd.Parameters.Clear();
+                                //    }
 
-                                    cmd.Transaction.Commit();
-                                    MessageBox.Show("Ödeme/kazanma başarılı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-                                    tsbYenile.PerformClick();
-                                }
-                                catch (Exception ex)
-                                {
-                                    cmd.Transaction.Rollback();
-                                    MessageBox.Show("Ödeme/kazanma başarılı. Ancak veritabanına kaydederken hata oluştu." + Environment.NewLine + ex.Message, "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-                                    tsbYenile.PerformClick();
-                                }
+                                //    cmd.Transaction.Commit();
+                                //    MessageBox.Show("Ödeme/kazanma başarılı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                                //    tsbYenile.PerformClick();
+                                //}
+                                //catch (Exception ex)
+                                //{
+                                //    cmd.Transaction.Rollback();
+                                //    MessageBox.Show("Ödeme/kazanma başarılı. Ancak veritabanına kaydederken hata oluştu." + Environment.NewLine + ex.Message, "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                                //    tsbYenile.PerformClick();
+                                //}
                             }
                             //}
                         }

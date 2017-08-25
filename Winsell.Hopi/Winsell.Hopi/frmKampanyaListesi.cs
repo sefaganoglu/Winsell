@@ -106,7 +106,8 @@ namespace Winsell.Hopi
                               "(ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0))) " +
                               "OR (ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0))) " +
                               "OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '' AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= AdisyonTutar)) AS B WHERE Tutar <> 0) AS C " +
-                              "WHERE (Kazanc <> 0 OR Indirim <> 0)";
+                              "WHERE (Kazanc <> 0 OR Indirim <> 0) " + 
+                              "ORDER BY Indirim DESC";
 
             cmd.Parameters.AddWithValue("@Paracik", txtParacik.Text.TODECIMAL());
             cmd.Parameters.AddWithValue("@MASANO", masaNoX);
@@ -167,17 +168,23 @@ namespace Winsell.Hopi
                         string[] arrHataliDR = arrDR.Where(p => p["Kullanilabilir"].TOINT() == 0).Select(p => p["KOD"].TOSTRING() + " kodlu kampanyanın mesajı: " + Environment.NewLine + p["Dikkat"].TOSTRING()).ToArray();
                         if (arrHataliDR.Length == 0)
                         {
-                            kampanyaBilgisi.paracik = txtParacik.Text.TODECIMAL();
+                            kampanyaBilgisi.paracik = txtParacik.Text.TODECIMAL().ROUNDTWO();
                             if (dgvKampanyalar.Rows.Count != 0)
                             {
+                                List<decimal> lstIndirimler = new List<decimal>();
                                 foreach (DataRow DR in arrDR)
                                 {
                                     clsSiniflar.Kampanya kampanya = new clsSiniflar.Kampanya();
                                     kampanya.kampanyaKodu = DR["KOD"].TOSTRING();
-                                    kampanya.indirim = DR["Indirim"].TODECIMAL();
-                                    kampanya.indirimOrani = DR["IndirimOrani"].TODECIMAL();
-                                    kampanya.kazanc = DR["Kazanc"].TODECIMAL();
+                                    kampanya.indirimTutari = DR["Indirim"].TODECIMAL().ROUNDTWO();
+                                    kampanya.indirimOrani = DR["IndirimOrani"].TODECIMAL().ROUNDTWO();
+                                    decimal dKazanc = DR["Kazanc"].TODECIMAL().ROUNDTWO();
+                                    foreach (decimal d in lstIndirimler) dKazanc -= dKazanc * d / 100;
+                                    kampanya.paracikKazanc = dKazanc.ROUNDTWO();
+                                    kampanya.kampanyaTipi = kampanya.paracikKazanc != 0 ? clsSiniflar.KampanyaTipi.Kazanc : clsSiniflar.KampanyaTipi.Indirim;
                                     kampanyaBilgisi.kampanyalar.Add(kampanya);
+
+                                    if (kampanya.indirimOrani > 0) lstIndirimler.Add(kampanya.indirimOrani);
                                 }
                             }
                             //else

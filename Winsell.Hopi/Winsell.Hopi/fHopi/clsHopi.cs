@@ -13,6 +13,12 @@ namespace Winsell.Hopi
 {
     public static class clsHopi
     {
+        public enum KampanyaTipi
+        {
+            Indirim = 0,
+            Kazanc = 1
+        }
+
         public class AlisverisBilgisi
         {
             public long birdId = 0;
@@ -40,8 +46,10 @@ namespace Winsell.Hopi
 
         public class Kampanya
         {
+            public KampanyaTipi kampanyaTipi = KampanyaTipi.Indirim;
             public string kampanyaKodu = "";
             public decimal paracikKazanc = 0;
+            public decimal indirimTutari = 0;
         }
 
         public class Kullanici

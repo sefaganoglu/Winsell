@@ -72,14 +72,15 @@ namespace Winsell.Hopi
                                          select new
                                          {
                                              Kdv = groupDt.Key,
-                                             SumTutar = groupDt.Sum((r) => (r.tutar))
+                                             SumTutar = groupDt.Sum((r) => (r.tutar)),
+                                             SumIndirim = groupDt.Sum((r) => (r.indirimTutari))
                                          };
 
             List<HopiWS.AmountDetail> arrDetails = new List<HopiWS.AmountDetail>();
             foreach (var v in vKdvGrupluTutarlar)
             {
                 HopiWS.AmountDetail adDetail = new HopiWS.AmountDetail();
-                adDetail.amount = v.SumTutar.ROUNDTWO();
+                adDetail.amount = (v.SumTutar - v.SumIndirim).ROUNDTWO();
                 adDetail.Item = v.Kdv.TOINT(); //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
                 arrDetails.Add(adDetail);
             }
@@ -95,14 +96,15 @@ namespace Winsell.Hopi
                                           select new
                                           {
                                               Kdv = groupDt.Key,
-                                              SumTutar = groupDt.Sum((r) => (r.tutar))
+                                              SumTutar = groupDt.Sum((r) => (r.tutar)),
+                                              SumIndirim = groupDt.Sum((r) => (r.indirimTutari))
                                           };
 
             List<HopiWS.AmountDetail> arrDetails2 = new List<HopiWS.AmountDetail>();
             foreach (var v in vKdvGrupluTutarlar2)
             {
                 HopiWS.AmountDetail adDetail = new HopiWS.AmountDetail();
-                adDetail.amount = v.SumTutar.ROUNDTWO();
+                adDetail.amount = (v.SumTutar - v.SumIndirim).ROUNDTWO();
                 adDetail.Item = v.Kdv.TOINT(); //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
                 arrDetails2.Add(adDetail);
             }
@@ -111,8 +113,8 @@ namespace Winsell.Hopi
 
             //KAMPANYA BİLGİLERİ
             List<HopiWS.UsedCampaignDetail> arrCampains = new List<HopiWS.UsedCampaignDetail>();
-            //var kampanyalar = alisverisBilgisi.urunler.Where(p => p.kampanya != "").Select(p => p.kampanya).Distinct();
 
+            Dictionary<int, decimal> cikarilacakTutarlar = new Dictionary<int, decimal>();
             foreach (clsHopi.Kampanya kampanya in alisverisBilgisi.kampanyalar)
             {
                 if (!string.IsNullOrWhiteSpace(kampanya.kampanyaKodu))
@@ -137,12 +139,19 @@ namespace Winsell.Hopi
                     List<HopiWS.AmountDetail> arrCampDetails = new List<HopiWS.AmountDetail>();
                     foreach (var v in vKampanyaliKdvGrupluTutarlar)
                     {
+                        decimal cikarilacakTutar = 0;
+                        cikarilacakTutarlar.TryGetValue(v.Kdv.TOINT(), out cikarilacakTutar);
                         HopiWS.AmountDetail adCampDetail = new HopiWS.AmountDetail
                         {
-                            amount = v.SumTutar.ROUNDTWO(),
+                            amount = (v.SumTutar - cikarilacakTutar).ROUNDTWO(),
                             Item = v.Kdv.TOINT() //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
                         };
                         arrCampDetails.Add(adCampDetail);
+
+                        if (!cikarilacakTutarlar.ContainsKey(v.Kdv.TOINT()))
+                            cikarilacakTutarlar.Add(v.Kdv.TOINT(), cikarilacakTutar + v.SumIndirimTutar);
+                        else
+                            cikarilacakTutarlar[v.Kdv.TOINT()] = cikarilacakTutar + v.SumIndirimTutar;
 
                         HopiWS.AmountDetail adIndirim = new HopiWS.AmountDetail
                         {
@@ -173,7 +182,7 @@ namespace Winsell.Hopi
                 {
                     barcode = urun.barkod,
                     quantity = urun.miktar.ROUNDTWO(),
-                    amount = urun.tutar.ROUNDTWO(),
+                    amount = urun.tutar.ROUNDTWO(), //İNDİRİMLİ GÖRÜNMESİ GEREKİYORSA urun.indirimTutari ÇIKARILIR
                     campaign = urun.kampanyaKodlari.ToArray()
                 };
                 arrInfo.Add(tiInfo);
@@ -190,10 +199,10 @@ namespace Winsell.Hopi
             //PARACIK KULLANIM BİLGİSİ
             if (alisverisBilgisi.kullanilacakParacik != 0)
             {
-                ulong provisionIdGelen = setKullanilacakParacikBilgisi(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, alisverisBilgisi.birdId, alisverisBilgisi.kullanilacakParacik);
+                ulong provisionIdGelen = 1; //setKullanilacakParacikBilgisi(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, alisverisBilgisi.birdId, alisverisBilgisi.kullanilacakParacik);
                 if (provisionIdGelen > 0)
                 {
-                    if (setKullanilacakParacikBilgisiIslemiBitir(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, provisionIdGelen))
+                    if (true) //(setKullanilacakParacikBilgisiIslemiBitir(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, provisionIdGelen))
                     {
                         cRequest.usedCoinDetails = new[] { new HopiWS.UsedCoinDetail() { provisionId = provisionIdGelen, amount = alisverisBilgisi.kullanilacakParacik } };
                     }
@@ -227,7 +236,7 @@ namespace Winsell.Hopi
                         SW.Close();
                         SW.Dispose();
 
-                        client.NotifyCheckout(cRequest);
+                        //client.NotifyCheckout(cRequest);
 
                         blnReturn = true;
                     }

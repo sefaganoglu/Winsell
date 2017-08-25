@@ -28,7 +28,6 @@ D:\Projects\visual studio\Winsell\WinsellHopi\Winsell.Hopi\obj\Debug\Winsell.Hop
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.exe.config
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.exe
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.pdb
-D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.csprojResolveAssemblyReference.cache
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmAdisyonListesi.resources
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmAnaMenu.resources
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmHesapBol.resources

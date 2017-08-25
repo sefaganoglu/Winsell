@@ -26,7 +26,7 @@ namespace Winsell.Hopi.Data.Entity
 
         public decimal? HOPI_KAZAN_PARA { get; set; }
 
-        public int? HOPI_KAT { get; set; }
+        public decimal? HOPI_KAT { get; set; }
 
         public bool? AKTIF { get; set; }
 

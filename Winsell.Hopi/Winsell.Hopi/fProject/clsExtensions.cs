@@ -67,7 +67,7 @@ namespace Winsell.Hopi
 
         public static decimal ROUNDTWO(this decimal o)
         {
-            decimal dReturn = Math.Round(o, 2);
+            decimal dReturn = Math.Round(o, 2, MidpointRounding.AwayFromZero);
             return dReturn;
         }
     }
