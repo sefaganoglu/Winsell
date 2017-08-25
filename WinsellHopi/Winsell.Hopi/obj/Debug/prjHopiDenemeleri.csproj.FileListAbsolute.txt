@@ -1,0 +1,14 @@
+c:\users\administrator\documents\visual studio 2013\Projects\prjHopiDenemeleri\prjHopiDenemeleri\bin\Debug\prjHopiDenemeleri.exe.config
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\bin\Debug\prjHopiDenemeleri.exe.config
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.Properties.Resources.resources
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.csproj.GenerateResource.Cache
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\bin\Debug\prjHopiDenemeleri.exe
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\bin\Debug\prjHopiDenemeleri.pdb
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.exe
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.pdb
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.frmAnaMenu.resources
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.frmHesapBol.resources
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.frmAdisyonListesi.resources
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.frmKullaniciGirisi.resources
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.frmKimlikOkuma.resources
+D:\Projects\visual studio\prjHopiDenemeleri\prjHopiDenemeleri\obj\Debug\prjHopiDenemeleri.frmKampanyaListesi.resources

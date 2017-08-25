@@ -407,5 +407,39 @@ namespace Winsell.Hopi.API.Controllers
 
             return kullanici;
         }
+
+        [HttpGet("tekStokKontrol")]
+        public bool tekStokKontrol(int masaNo, int adisyonNo)
+        {
+            bool blnReturn = false;
+
+            SqlConnection cnn = Genel.createDBConnection();
+            SqlCommand cmd = cnn.CreateCommand();
+            cmd.CommandText = "SELECT SUM(RC.MIKTAR) AS Sayi FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND KOD = 'B' AND LTRIM(RTRIM(ISNULL(RC.GARNITUR_MASTER_STOKKODU, CAST('' AS VARCHAR)))) = ''";
+            cmd.Parameters.AddWithValue("@MASANO", masaNo);
+            cmd.Parameters.AddWithValue("@CEKNO", adisyonNo);
+            blnReturn = cmd.ExecuteScalar().TODECIMAL() == 1;
+            cmd.Dispose();
+            cnn.Close();
+
+            return blnReturn;
+        }
+
+        [HttpGet("kismiOdemeKontrol")]
+        public bool kismiOdemeKontrol(int masaNo, int adisyonNo)
+        {
+            bool blnReturn = false;
+
+            SqlConnection cnn = Genel.createDBConnection();
+            SqlCommand cmd = cnn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(RC.CEKNO) AS Sayi FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND KOD = 'A'";
+            cmd.Parameters.AddWithValue("@MASANO", masaNo);
+            cmd.Parameters.AddWithValue("@CEKNO", adisyonNo);
+            blnReturn = cmd.ExecuteScalar().TOINT() > 0;
+            cmd.Dispose();
+            cnn.Close();
+
+            return blnReturn;
+        }
     }
 }

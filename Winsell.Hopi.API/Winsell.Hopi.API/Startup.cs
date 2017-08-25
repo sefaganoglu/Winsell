@@ -28,9 +28,7 @@ namespace Winsell.Hopi.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<HopiContext>(
-                options =>
-                        options.UseSqlServer(Configuration["ConnectionString"].ToString()));
+            services.AddDbContext<HopiContext>(options => options.UseSqlServer(Configuration["ConnectionString"].ToString()));
 
             services.AddMvc();
         }

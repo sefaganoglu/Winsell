@@ -1,0 +1,10 @@
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.deps.json
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.pdb
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Microsoft.EntityFrameworkCore.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Microsoft.EntityFrameworkCore.xml
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.csproj.CoreCompileInputs.cache
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.AssemblyInfoInputs.cache
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.AssemblyInfo.cs
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.pdb

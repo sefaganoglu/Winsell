@@ -31,3 +31,5 @@ F:\SEFA\Winsell\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.
 F:\SEFA\Winsell\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.dll
 F:\SEFA\Winsell\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\obj\Debug\netcoreapp2.0\Winsell.Hopi.API.pdb
 F:\SEFA\Winsell\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.API\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.pdb
