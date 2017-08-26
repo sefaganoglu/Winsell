@@ -39,3 +39,17 @@ D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Ho
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.csproj.CoreCompileInputs.cache
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.exe
 D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.pdb
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmAdisyonListesi.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmAnaMenu.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmHesapBol.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmKampanyaListesi.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmKimlikOkuma.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.frmKullaniciGirisi.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.Properties.Resources.resources
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.csproj.GenerateResource.Cache
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.csproj.CoreCompileInputs.cache
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.exe
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.pdb
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.exe.config
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.exe
+F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.pdb

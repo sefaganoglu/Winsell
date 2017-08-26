@@ -114,7 +114,7 @@ namespace Winsell.Hopi
             //KAMPANYA BİLGİLERİ
             List<HopiWS.UsedCampaignDetail> arrCampains = new List<HopiWS.UsedCampaignDetail>();
 
-            Dictionary<int, decimal> cikarilacakTutarlar = new Dictionary<int, decimal>();
+            //Dictionary<int, decimal> cikarilacakTutarlar = new Dictionary<int, decimal>();
             foreach (clsHopi.Kampanya kampanya in alisverisBilgisi.kampanyalar)
             {
                 if (!string.IsNullOrWhiteSpace(kampanya.kampanyaKodu))
@@ -133,25 +133,25 @@ namespace Winsell.Hopi
                                                                SumTutar = groupDt.Sum((r) => (r.tutar)),
                                                                SumIndirimTutar = groupDt.Sum((r) => (r.indirimTutari)),
                                                            };
-
+                     
                     Decimal dKazanc = kampanya.paracikKazanc.ROUNDTWO();
                     List<object> arrIndirim = new List<object>();
                     List<HopiWS.AmountDetail> arrCampDetails = new List<HopiWS.AmountDetail>();
                     foreach (var v in vKampanyaliKdvGrupluTutarlar)
                     {
-                        decimal cikarilacakTutar = 0;
-                        cikarilacakTutarlar.TryGetValue(v.Kdv.TOINT(), out cikarilacakTutar);
+                        //decimal cikarilacakTutar = 0;
+                        //cikarilacakTutarlar.TryGetValue(v.Kdv.TOINT(), out cikarilacakTutar);
                         HopiWS.AmountDetail adCampDetail = new HopiWS.AmountDetail
                         {
-                            amount = (v.SumTutar - cikarilacakTutar).ROUNDTWO(),
+                            amount = (v.SumTutar - v.SumIndirimTutar).ROUNDTWO(), //BURADA SORUN VAR
                             Item = v.Kdv.TOINT() //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
                         };
                         arrCampDetails.Add(adCampDetail);
 
-                        if (!cikarilacakTutarlar.ContainsKey(v.Kdv.TOINT()))
-                            cikarilacakTutarlar.Add(v.Kdv.TOINT(), cikarilacakTutar + v.SumIndirimTutar);
-                        else
-                            cikarilacakTutarlar[v.Kdv.TOINT()] = cikarilacakTutar + v.SumIndirimTutar;
+                        //if (!cikarilacakTutarlar.ContainsKey(v.Kdv.TOINT()))
+                        //    cikarilacakTutarlar.Add(v.Kdv.TOINT(), cikarilacakTutar + v.SumIndirimTutar);
+                        //else
+                        //    cikarilacakTutarlar[v.Kdv.TOINT()] = cikarilacakTutar + v.SumIndirimTutar;
 
                         HopiWS.AmountDetail adIndirim = new HopiWS.AmountDetail
                         {

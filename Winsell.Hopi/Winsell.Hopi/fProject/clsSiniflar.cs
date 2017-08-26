@@ -33,11 +33,16 @@ namespace Winsell.Hopi.fProject
 
         public class Kampanya
         {
-            public KampanyaTipi kampanyaTipi = KampanyaTipi.Indirim;
             public string kampanyaKodu = "";
-            public decimal paracikKazanc = 0;
-            public decimal indirimTutari = 0;
-            public decimal indirimOrani = 0;
+            public int adet = 0;
+            public int kazancOrani = 0;
+            public decimal kazancParacik = 0;
+            public decimal indirimKat = 0;
+            public int indirimOrani = 0;
+            public decimal maksimumKatParacik = 0;
+            public decimal maksimumKazanc = 0;
+            public decimal miktar = 0;
+            public decimal fiyatsalSinir = 0;
         }
 
         public class KimlikBilgisi

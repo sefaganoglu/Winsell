@@ -64,7 +64,7 @@ namespace Winsell.Hopi
             SqlConnection cnn = clsGenel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
             cmd.CommandText = "SELECT DISTINCT RC.MASANO, RC.MASANOSTR, (SELECT SUM((ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT))) - ISNULL(ALACAK, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO) AS Tutar, " +
-                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND LTRIM(RTRIM(ISNULL(BIRDID, CAST(0 AS INT)))) > 0) > 0 THEN 0 ELSE 1 END AS Kullanilabilir " + 
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND LTRIM(RTRIM(ISNULL(BIRDID, CAST(0 AS INT)))) > 0) > 0 THEN 0 ELSE 1 END AS Kullanilabilir " +
                               "FROM RESCEK AS RC " +
                               "ORDER BY RC.MASANOSTR";
             SqlDataReader reader = cmd.ExecuteReader();
@@ -180,22 +180,54 @@ namespace Winsell.Hopi
                                 urun.x = reader["X"].TOINT();
                                 urun.siraNo = reader["SIRANO"].TOINT();
 
-                                if (urun.kampanyaKodlari.Count > 0)
-                                {
-                                    foreach (string strKampanyaKodu in urun.kampanyaKodlari)
-                                    {
-                                        var kampanyaKodu = strKampanyaKodu;
-                                        var indirimOrani = kampanyaBilgisi.kampanyalar.Where(p => p.kampanyaKodu == kampanyaKodu).Sum(p => p.indirimOrani).ROUNDTWO(); //.TODECIMAL();
-                                        urun.indirimTutari += ((reader["TUTAR"].TODECIMAL().ROUNDTWO() - urun.indirimTutari) * indirimOrani.TODECIMAL().ROUNDTWO() / 100).ROUNDTWO();
-                                    }
-                                }
-
                                 //dIskontoTutari += reader["ISKONTOTUTARI"].TODECIMAL();
 
                                 arrUrun.Add(urun);
                             }
                             reader.Close();
                             cmd.Parameters.Clear();
+
+                            //YÜZDELİ İNDİRİM HESAPLAMA
+                            foreach (clsHopi.Urun urun in arrUrun)
+                            {
+                                if (urun.kampanyaKodlari.Count > 0)
+                                {
+                                    foreach (string strKampanyaKodu in urun.kampanyaKodlari)
+                                    {
+                                        var kampanyaKodu = strKampanyaKodu;
+                                        var indirimOrani = kampanyaBilgisi.kampanyalar.Where(p => p.kampanyaKodu == kampanyaKodu).Sum(p => p.indirimOrani);
+                                        urun.indirimTutari += ((urun.tutar - urun.indirimTutari) * indirimOrani.TODECIMAL() / 100);
+                                    }
+                                    adisyonBilgisi.adisyonTutar -= urun.indirimTutari;
+                                }
+                            }
+                            ////////////////////////////
+
+
+                            decimal adisyondanDusulecekIndirim = 0;
+                            //KATLI İNDİRİM HESAPLAMA (YÜZDELİ DÜŞÜLDÜKTEN SONRA)
+                            foreach (clsHopi.Urun urun in arrUrun)
+                            {
+                                if (urun.kampanyaKodlari.Count > 0)
+                                {
+                                    decimal urunIndirim = 0;
+                                    foreach (string strKampanyaKodu in urun.kampanyaKodlari)
+                                    {
+                                        var kampanyaKodu = strKampanyaKodu;
+                                        clsSiniflar.Kampanya kampanya = kampanyaBilgisi.kampanyalar.First(p => p.kampanyaKodu == kampanyaKodu);
+
+                                        decimal gercekParacik = (kampanyaBilgisi.paracik > kampanya.maksimumKatParacik ? kampanya.maksimumKatParacik : kampanyaBilgisi.paracik);
+                                        decimal indirimOrani = ((gercekParacik * kampanya.indirimKat) - gercekParacik) / (adisyonBilgisi.adisyonTutar - urunIndirim) * 100.TODECIMAL();
+
+                                        urunIndirim = ((urun.tutar - urun.indirimTutari) * indirimOrani.TODECIMAL() / 100);
+                                        urun.indirimTutari += urunIndirim;
+                                        adisyondanDusulecekIndirim += urunIndirim;
+                                    }
+                                }
+                            }
+                            adisyonBilgisi.adisyonTutar -= adisyondanDusulecekIndirim;
+
+                            if (kampanyaBilgisi.paracik > adisyonBilgisi.adisyonTutar) kampanyaBilgisi.paracik = adisyonBilgisi.adisyonTutar;
 
                             //if (kampanyaBilgisi.indirimOrani > 0 && dIskontoTutari > 0)
                             //{
@@ -215,10 +247,22 @@ namespace Winsell.Hopi
                             foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
                             {
                                 clsHopi.Kampanya kampanyaHopi = new clsHopi.Kampanya();
-                                kampanyaHopi.paracikKazanc = kampanya.paracikKazanc;
-                                kampanyaHopi.indirimTutari = kampanya.indirimTutari;
                                 kampanyaHopi.kampanyaKodu = kampanya.kampanyaKodu;
-                                kampanyaHopi.kampanyaTipi = (clsHopi.KampanyaTipi)kampanya.kampanyaTipi;
+
+                                decimal kampanyaTutari = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar - p.indirimTutari);
+                                if (kampanya.fiyatsalSinir == 0 || kampanyaTutari >= kampanya.fiyatsalSinir)
+                                {
+                                    if (kampanya.kazancOrani > 0)
+                                        kampanyaHopi.paracikKazanc = kampanyaTutari * kampanya.kazancOrani / 100;
+                                    else
+                                        kampanyaHopi.paracikKazanc = kampanya.kazancParacik;
+
+                                    if (kampanyaHopi.paracikKazanc > kampanya.maksimumKazanc)
+                                        kampanyaHopi.paracikKazanc = kampanya.maksimumKazanc;
+
+                                    kampanyaHopi.paracikKazanc = kampanyaHopi.paracikKazanc * (kampanya.adet > 0 ? kampanya.miktar / kampanya.adet : 1);
+                                }
+
                                 alisverisBilgisi.kampanyalar.Add(kampanyaHopi);
                             }
 
@@ -367,7 +411,9 @@ namespace Winsell.Hopi
                 lblKullanici.Text = clsGenel.kullaniciAdi;
                 tsbYenile.PerformClick();
                 this.Visible = true;
-                clsGenel.kampanyaGuncelle();
+
+                if (!string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()))
+                    clsGenel.kampanyaGuncelle();
             }
             else
                 this.Close();

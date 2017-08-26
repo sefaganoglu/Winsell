@@ -49,7 +49,6 @@ namespace Winsell.Hopi
             public KampanyaTipi kampanyaTipi = KampanyaTipi.Indirim;
             public string kampanyaKodu = "";
             public decimal paracikKazanc = 0;
-            public decimal indirimTutari = 0;
         }
 
         public class Kullanici
