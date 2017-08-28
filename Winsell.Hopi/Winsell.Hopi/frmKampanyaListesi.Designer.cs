@@ -28,11 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle19 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle20 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle21 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmKampanyaListesi));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dgvKampanyalar = new System.Windows.Forms.DataGridView();
+            this.colSec = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.colKampanya = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAciklama = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAdet = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colKazancOrani = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colKazancMiktari = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colKatMiktari = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colIndirimOrani = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colMaxHopiKat = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colMaxKazancPara = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colMiktar = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colFiyatsalSinir = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tsMenu = new System.Windows.Forms.ToolStrip();
             this.tsbTamam = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -57,18 +69,7 @@
             this.btn5 = new System.Windows.Forms.Button();
             this.btn1 = new System.Windows.Forms.Button();
             this.btn6 = new System.Windows.Forms.Button();
-            this.colSec = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.colKampanya = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colAciklama = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colAdet = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colKazancOrani = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colKazancMiktari = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colKatMiktari = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colIndirimOrani = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colMaxHopiKat = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colMaxKazancPara = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colMiktar = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colFiyatsalSinir = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.txtParacikKusurat = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvKampanyalar)).BeginInit();
             this.tsMenu.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -78,8 +79,8 @@
             // 
             this.dgvKampanyalar.AllowUserToAddRows = false;
             this.dgvKampanyalar.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.dgvKampanyalar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle19.BackColor = System.Drawing.Color.LightSteelBlue;
+            this.dgvKampanyalar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle19;
             this.dgvKampanyalar.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvKampanyalar.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colSec,
@@ -104,6 +105,113 @@
             this.dgvKampanyalar.TabIndex = 24;
             this.dgvKampanyalar.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvKampanyalar_CellClick);
             this.dgvKampanyalar.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dgvKampanyalar_CellPainting);
+            // 
+            // colSec
+            // 
+            this.colSec.DataPropertyName = "Sec";
+            this.colSec.FalseValue = "0";
+            this.colSec.HeaderText = "";
+            this.colSec.Name = "colSec";
+            this.colSec.ReadOnly = true;
+            this.colSec.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.colSec.TrueValue = "1";
+            this.colSec.Width = 30;
+            // 
+            // colKampanya
+            // 
+            this.colKampanya.DataPropertyName = "KOD";
+            this.colKampanya.HeaderText = "Kampanya";
+            this.colKampanya.Name = "colKampanya";
+            this.colKampanya.ReadOnly = true;
+            this.colKampanya.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.colKampanya.Width = 75;
+            // 
+            // colAciklama
+            // 
+            this.colAciklama.DataPropertyName = "ACIKLAMA";
+            this.colAciklama.HeaderText = "Açıklama";
+            this.colAciklama.Name = "colAciklama";
+            this.colAciklama.ReadOnly = true;
+            this.colAciklama.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.colAciklama.Width = 300;
+            // 
+            // colAdet
+            // 
+            this.colAdet.DataPropertyName = "ADET";
+            dataGridViewCellStyle20.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle20.Format = "N2";
+            this.colAdet.DefaultCellStyle = dataGridViewCellStyle20;
+            this.colAdet.HeaderText = "Adet";
+            this.colAdet.Name = "colAdet";
+            this.colAdet.ReadOnly = true;
+            this.colAdet.Visible = false;
+            this.colAdet.Width = 75;
+            // 
+            // colKazancOrani
+            // 
+            this.colKazancOrani.DataPropertyName = "HOPI_KAZAN_ORANI";
+            dataGridViewCellStyle21.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle21.Format = "N2";
+            this.colKazancOrani.DefaultCellStyle = dataGridViewCellStyle21;
+            this.colKazancOrani.HeaderText = "Kazanç Oranı";
+            this.colKazancOrani.Name = "colKazancOrani";
+            this.colKazancOrani.ReadOnly = true;
+            this.colKazancOrani.Visible = false;
+            this.colKazancOrani.Width = 75;
+            // 
+            // colKazancMiktari
+            // 
+            this.colKazancMiktari.DataPropertyName = "HOPI_KAZAN_PARA";
+            this.colKazancMiktari.HeaderText = "Kazanç Miktarı";
+            this.colKazancMiktari.Name = "colKazancMiktari";
+            this.colKazancMiktari.ReadOnly = true;
+            this.colKazancMiktari.Visible = false;
+            this.colKazancMiktari.Width = 200;
+            // 
+            // colKatMiktari
+            // 
+            this.colKatMiktari.DataPropertyName = "HOPI_KAT";
+            this.colKatMiktari.HeaderText = "Kat Miktarı";
+            this.colKatMiktari.Name = "colKatMiktari";
+            this.colKatMiktari.ReadOnly = true;
+            this.colKatMiktari.Visible = false;
+            this.colKatMiktari.Width = 75;
+            // 
+            // colIndirimOrani
+            // 
+            this.colIndirimOrani.DataPropertyName = "INDIRIM_ORANI";
+            this.colIndirimOrani.HeaderText = "İndirim Oranı";
+            this.colIndirimOrani.Name = "colIndirimOrani";
+            this.colIndirimOrani.ReadOnly = true;
+            this.colIndirimOrani.Visible = false;
+            // 
+            // colMaxHopiKat
+            // 
+            this.colMaxHopiKat.DataPropertyName = "MAX_HOPI_KAT";
+            this.colMaxHopiKat.HeaderText = "Max Hopi Kat";
+            this.colMaxHopiKat.Name = "colMaxHopiKat";
+            this.colMaxHopiKat.Visible = false;
+            // 
+            // colMaxKazancPara
+            // 
+            this.colMaxKazancPara.DataPropertyName = "MAX_KAZAN_PARA";
+            this.colMaxKazancPara.HeaderText = "Max Kazanç Para";
+            this.colMaxKazancPara.Name = "colMaxKazancPara";
+            this.colMaxKazancPara.Visible = false;
+            // 
+            // colMiktar
+            // 
+            this.colMiktar.DataPropertyName = "Miktar";
+            this.colMiktar.HeaderText = "Miktar";
+            this.colMiktar.Name = "colMiktar";
+            this.colMiktar.Visible = false;
+            // 
+            // colFiyatsalSinir
+            // 
+            this.colFiyatsalSinir.DataPropertyName = "FIYATSAL_SINIR";
+            this.colFiyatsalSinir.HeaderText = "Fiyatsal Sınır";
+            this.colFiyatsalSinir.Name = "colFiyatsalSinir";
+            this.colFiyatsalSinir.Visible = false;
             // 
             // tsMenu
             // 
@@ -165,6 +273,7 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.txtParacikKusurat);
             this.panel2.Controls.Add(this.lblAdisyonTutari);
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.lblKullanilabilirLimit);
@@ -234,10 +343,10 @@
             this.txtParacik.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.txtParacik.Location = new System.Drawing.Point(5, 34);
             this.txtParacik.Name = "txtParacik";
-            this.txtParacik.Size = new System.Drawing.Size(237, 38);
+            this.txtParacik.Size = new System.Drawing.Size(156, 38);
             this.txtParacik.TabIndex = 1;
             this.txtParacik.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.txtParacik.TextChanged += new System.EventHandler(this.txtParacik_TextChanged);
+            this.txtParacik.Enter += new System.EventHandler(this.txtParacik_Enter);
             // 
             // btnSeparator
             // 
@@ -248,7 +357,7 @@
             this.btnSeparator.TabIndex = 35;
             this.btnSeparator.Text = ",";
             this.btnSeparator.UseVisualStyleBackColor = true;
-            this.btnSeparator.Click += new System.EventHandler(this.btn7_Click);
+            this.btnSeparator.Click += new System.EventHandler(this.btnSeparator_Click);
             // 
             // btn7
             // 
@@ -371,112 +480,14 @@
             this.btn6.UseVisualStyleBackColor = true;
             this.btn6.Click += new System.EventHandler(this.btn7_Click);
             // 
-            // colSec
+            // txtParacikKusurat
             // 
-            this.colSec.DataPropertyName = "Sec";
-            this.colSec.FalseValue = "0";
-            this.colSec.HeaderText = "";
-            this.colSec.Name = "colSec";
-            this.colSec.ReadOnly = true;
-            this.colSec.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.colSec.TrueValue = "1";
-            this.colSec.Width = 30;
-            // 
-            // colKampanya
-            // 
-            this.colKampanya.DataPropertyName = "KOD";
-            this.colKampanya.HeaderText = "Kampanya";
-            this.colKampanya.Name = "colKampanya";
-            this.colKampanya.ReadOnly = true;
-            this.colKampanya.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.colKampanya.Width = 75;
-            // 
-            // colAciklama
-            // 
-            this.colAciklama.DataPropertyName = "ACIKLAMA";
-            this.colAciklama.HeaderText = "Açıklama";
-            this.colAciklama.Name = "colAciklama";
-            this.colAciklama.ReadOnly = true;
-            this.colAciklama.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.colAciklama.Width = 300;
-            // 
-            // colAdet
-            // 
-            this.colAdet.DataPropertyName = "ADET";
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle2.Format = "N2";
-            this.colAdet.DefaultCellStyle = dataGridViewCellStyle2;
-            this.colAdet.HeaderText = "Adet";
-            this.colAdet.Name = "colAdet";
-            this.colAdet.ReadOnly = true;
-            this.colAdet.Visible = false;
-            this.colAdet.Width = 75;
-            // 
-            // colKazancOrani
-            // 
-            this.colKazancOrani.DataPropertyName = "HOPI_KAZAN_ORANI";
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle3.Format = "N2";
-            this.colKazancOrani.DefaultCellStyle = dataGridViewCellStyle3;
-            this.colKazancOrani.HeaderText = "Kazanç Oranı";
-            this.colKazancOrani.Name = "colKazancOrani";
-            this.colKazancOrani.ReadOnly = true;
-            this.colKazancOrani.Visible = false;
-            this.colKazancOrani.Width = 75;
-            // 
-            // colKazancMiktari
-            // 
-            this.colKazancMiktari.DataPropertyName = "HOPI_KAZAN_PARA";
-            this.colKazancMiktari.HeaderText = "Kazanç Miktarı";
-            this.colKazancMiktari.Name = "colKazancMiktari";
-            this.colKazancMiktari.ReadOnly = true;
-            this.colKazancMiktari.Visible = false;
-            this.colKazancMiktari.Width = 200;
-            // 
-            // colKatMiktari
-            // 
-            this.colKatMiktari.DataPropertyName = "HOPI_KAT";
-            this.colKatMiktari.HeaderText = "Kat Miktarı";
-            this.colKatMiktari.Name = "colKatMiktari";
-            this.colKatMiktari.ReadOnly = true;
-            this.colKatMiktari.Visible = false;
-            this.colKatMiktari.Width = 75;
-            // 
-            // colIndirimOrani
-            // 
-            this.colIndirimOrani.DataPropertyName = "INDIRIM_ORANI";
-            this.colIndirimOrani.HeaderText = "İndirim Oranı";
-            this.colIndirimOrani.Name = "colIndirimOrani";
-            this.colIndirimOrani.ReadOnly = true;
-            this.colIndirimOrani.Visible = false;
-            // 
-            // colMaxHopiKat
-            // 
-            this.colMaxHopiKat.DataPropertyName = "MAX_HOPI_KAT";
-            this.colMaxHopiKat.HeaderText = "Max Hopi Kat";
-            this.colMaxHopiKat.Name = "colMaxHopiKat";
-            this.colMaxHopiKat.Visible = false;
-            // 
-            // colMaxKazancPara
-            // 
-            this.colMaxKazancPara.DataPropertyName = "MAX_KAZAN_PARA";
-            this.colMaxKazancPara.HeaderText = "Max Kazanç Para";
-            this.colMaxKazancPara.Name = "colMaxKazancPara";
-            this.colMaxKazancPara.Visible = false;
-            // 
-            // colMiktar
-            // 
-            this.colMiktar.DataPropertyName = "Miktar";
-            this.colMiktar.HeaderText = "Miktar";
-            this.colMiktar.Name = "colMiktar";
-            this.colMiktar.Visible = false;
-            // 
-            // colFiyatsalSinir
-            // 
-            this.colFiyatsalSinir.DataPropertyName = "FIYATSAL_SINIR";
-            this.colFiyatsalSinir.HeaderText = "Fiyatsal Sınır";
-            this.colFiyatsalSinir.Name = "colFiyatsalSinir";
-            this.colFiyatsalSinir.Visible = false;
+            this.txtParacikKusurat.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtParacikKusurat.Location = new System.Drawing.Point(167, 34);
+            this.txtParacikKusurat.Name = "txtParacikKusurat";
+            this.txtParacikKusurat.Size = new System.Drawing.Size(75, 38);
+            this.txtParacikKusurat.TabIndex = 40;
+            this.txtParacikKusurat.Enter += new System.EventHandler(this.txtParacik_Enter);
             // 
             // frmKampanyaListesi
             // 
@@ -545,5 +556,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colMaxKazancPara;
         private System.Windows.Forms.DataGridViewTextBoxColumn colMiktar;
         private System.Windows.Forms.DataGridViewTextBoxColumn colFiyatsalSinir;
+        private System.Windows.Forms.TextBox txtParacikKusurat;
     }
 }

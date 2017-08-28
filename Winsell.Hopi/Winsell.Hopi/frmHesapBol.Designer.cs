@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmHesapBol));
             this.dgvStoklar = new System.Windows.Forms.DataGridView();
             this.colSec = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -58,17 +58,21 @@
             this.btn8 = new System.Windows.Forms.Button();
             this.btn7 = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.pnlAltToplam = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.lblToplamTutar = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvStoklar)).BeginInit();
             this.tsMenu.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.pnlAltToplam.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvStoklar
             // 
             this.dgvStoklar.AllowUserToAddRows = false;
             this.dgvStoklar.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.dgvStoklar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.LightSteelBlue;
+            this.dgvStoklar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvStoklar.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvStoklar.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colSec,
@@ -85,9 +89,10 @@
             this.dgvStoklar.Name = "dgvStoklar";
             this.dgvStoklar.RowHeadersWidth = 24;
             this.dgvStoklar.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvStoklar.Size = new System.Drawing.Size(587, 267);
+            this.dgvStoklar.Size = new System.Drawing.Size(587, 249);
             this.dgvStoklar.TabIndex = 0;
             this.dgvStoklar.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvStoklar_CellClick);
+            this.dgvStoklar.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvStoklar_CellValueChanged);
             // 
             // colSec
             // 
@@ -116,18 +121,18 @@
             // colMiktarDegisim
             // 
             this.colMiktarDegisim.DataPropertyName = "MIKTAR_DEG";
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle5.Format = "N2";
-            this.colMiktarDegisim.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle2.Format = "N2";
+            this.colMiktarDegisim.DefaultCellStyle = dataGridViewCellStyle2;
             this.colMiktarDegisim.HeaderText = "Adet";
             this.colMiktarDegisim.Name = "colMiktarDegisim";
             // 
             // colTutar
             // 
             this.colTutar.DataPropertyName = "Tutar";
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle6.Format = "N2";
-            this.colTutar.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle3.Format = "N2";
+            this.colTutar.DefaultCellStyle = dataGridViewCellStyle3;
             this.colTutar.HeaderText = "Tutar";
             this.colTutar.Name = "colTutar";
             this.colTutar.ReadOnly = true;
@@ -344,6 +349,38 @@
             this.panel1.Size = new System.Drawing.Size(244, 267);
             this.panel1.TabIndex = 35;
             // 
+            // pnlAltToplam
+            // 
+            this.pnlAltToplam.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlAltToplam.Controls.Add(this.label1);
+            this.pnlAltToplam.Controls.Add(this.lblToplamTutar);
+            this.pnlAltToplam.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlAltToplam.Location = new System.Drawing.Point(0, 303);
+            this.pnlAltToplam.Name = "pnlAltToplam";
+            this.pnlAltToplam.Size = new System.Drawing.Size(587, 18);
+            this.pnlAltToplam.TabIndex = 36;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.label1.Location = new System.Drawing.Point(499, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(86, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Toplam Tutar:";
+            // 
+            // lblToplamTutar
+            // 
+            this.lblToplamTutar.AutoSize = true;
+            this.lblToplamTutar.Dock = System.Windows.Forms.DockStyle.Right;
+            this.lblToplamTutar.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblToplamTutar.Location = new System.Drawing.Point(585, 0);
+            this.lblToplamTutar.Name = "lblToplamTutar";
+            this.lblToplamTutar.Size = new System.Drawing.Size(0, 13);
+            this.lblToplamTutar.TabIndex = 1;
+            // 
             // frmHesapBol
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -351,6 +388,7 @@
             this.BackColor = System.Drawing.Color.LightSteelBlue;
             this.ClientSize = new System.Drawing.Size(831, 343);
             this.Controls.Add(this.dgvStoklar);
+            this.Controls.Add(this.pnlAltToplam);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.tsMenu);
@@ -365,6 +403,8 @@
             this.tsMenu.ResumeLayout(false);
             this.tsMenu.PerformLayout();
             this.panel1.ResumeLayout(false);
+            this.pnlAltToplam.ResumeLayout(false);
+            this.pnlAltToplam.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -398,5 +438,8 @@
         private System.Windows.Forms.Button btn8;
         private System.Windows.Forms.Button btn7;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel pnlAltToplam;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblToplamTutar;
     }
 }

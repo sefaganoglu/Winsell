@@ -18,6 +18,16 @@ namespace Winsell.Hopi
             return lResult;
         }
 
+        public static ulong TOULONG(this object o, ulong lDefault = 0)
+        {
+            ulong lResult = lDefault;
+            if (o != null && o is DBNull == false)
+            {
+                ulong.TryParse(o.ToString().Trim(), out lResult);
+            }
+            return lResult;
+        }
+
         public static decimal TODECIMAL(this object o, decimal dDefault = 0)
         {
             decimal dResult = dDefault;

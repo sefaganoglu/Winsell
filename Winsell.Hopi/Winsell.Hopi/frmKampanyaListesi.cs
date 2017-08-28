@@ -23,6 +23,7 @@ namespace Winsell.Hopi
         private decimal adisyonTutariX = 0;
         private DataTable dtKampanyalar = new DataTable();
 
+        TextBox txtFocusedTextBox = null;
         public frmKampanyaListesi(int masaNo, int adisyonNo, decimal paracik, decimal adisyonTutari)
         {
             InitializeComponent();
@@ -35,22 +36,22 @@ namespace Winsell.Hopi
             lblKullanilabilirLimit.Text = paracik.ToString("N2");
             lblAdisyonTutari.Text = adisyonTutari.ToString("N2");
 
-            txtParacik_TextChanged(txtParacik, new EventArgs());
+            txtFocusedTextBox = txtParacik;
+
+            kampanyaListesiGetir();
         }
+
 
         private void btn7_Click(object sender, EventArgs e)
         {
-            txtParacik.Text += ((Button)sender).Text;
+            txtFocusedTextBox.Text += ((Button)sender).Text;
         }
 
         private void btnSil_Click(object sender, EventArgs e)
         {
             txtParacik.Clear();
-        }
-
-        private void txtParacik_TextChanged(object sender, EventArgs e)
-        {
-            kampanyaListesiGetir();
+            txtParacikKusurat.Clear();
+            txtParacik.Focus();
         }
 
         private void kampanyaListesiGetir()
@@ -86,7 +87,7 @@ namespace Winsell.Hopi
                               "(ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0))) " +
                               "OR (ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0))) " +
                               "OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '' AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= AdisyonTutar) " +
-                              "ORDER BY INDIRIM_ORANI DESC, HOPI_KAT DESC, HOPI_KAZAN_ORANI DESC, HOPI_KAZAN_PARA DESC";
+                              "ORDER BY HOPI_KAT DESC, INDIRIM_ORANI DESC, HOPI_KAZAN_ORANI DESC, HOPI_KAZAN_PARA DESC";
 
             cmd.Parameters.AddWithValue("@MASANO", masaNoX);
             cmd.Parameters.AddWithValue("@CEKNO", adisyonNoX);
@@ -134,17 +135,30 @@ namespace Winsell.Hopi
                 dgvKampanyalar.CurrentCell = dgvKampanyalar.Rows[0].Cells[colKampanya.Name];
             dtKampanyalar.AcceptChanges();
 
+            decimal paracikTop = txtParacik.Text.TODECIMAL();
+            paracikTop += txtParacikKusurat.Text.TODECIMAL() / 100;
+
+            string[] arrKodlar = dtKampanyalar.AsEnumerable().Where(p => p["Sec"].TOINT() == 1 && p["HOPI_KAT"].TOINT() != 0).Select(p => p["KOD"].TOSTRING()).ToArray();
+
+            if (arrKodlar.Length > 0 && paracikTop == 0)
+            {
+                MessageBox.Show("Seçili kampanyalardan biri veya bazıları paracık harcaması olmadan çalışmaz." + Environment.NewLine + Environment.NewLine + "Paracık harcaması olmadan çalışmayan kampanyalar; " + arrKodlar.Aggregate((i, j) => i + ", " + j),
+                                "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                return;
+            }
+            
+
             DataRow[] arrDR = dtKampanyalar.Select("Sec = 1");
             if (dgvKampanyalar.Rows.Count == 0 || arrDR.Length > 0)
             {
-                if (txtParacik.Text.TODECIMAL() <= paracikX)
+                if (paracikTop <= paracikX)
                 {
-                    if (txtParacik.Text.TODECIMAL() <= adisyonTutariX)
+                    if (paracikTop <= adisyonTutariX)
                     {
                         string[] arrHataliDR = new string[] { };// = arrDR.Where(p => p["Kullanilabilir"].TOINT() == 0).Select(p => p["KOD"].TOSTRING() + " kodlu kampanyanın mesajı: " + Environment.NewLine + p["Dikkat"].TOSTRING()).ToArray();
                         if (arrHataliDR.Length == 0)
                         {
-                            kampanyaBilgisi.paracik = txtParacik.Text.TODECIMAL().ROUNDTWO();
+                            kampanyaBilgisi.paracik = paracikTop.ROUNDTWO();
                             if (dgvKampanyalar.Rows.Count != 0)
                             {
                                 foreach (DataRow DR in arrDR)
@@ -211,6 +225,17 @@ namespace Winsell.Hopi
         private void tsbKapat_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void btnSeparator_Click(object sender, EventArgs e)
+        {
+            txtParacikKusurat.Focus();
+            txtParacikKusurat.Clear();
+        }
+
+        private void txtParacik_Enter(object sender, EventArgs e)
+        {
+            txtFocusedTextBox = ((TextBox)sender);
         }
     }
 }

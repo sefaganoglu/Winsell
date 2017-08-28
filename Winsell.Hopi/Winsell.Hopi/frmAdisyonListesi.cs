@@ -19,10 +19,12 @@ namespace Winsell.Hopi
         private DataTable dtStoklar = new DataTable();
         private DataView dvStoklar;
         private DialogResult drReturn = DialogResult.Cancel;
+        private bool hopiOlacakX = false;
 
-        public frmAdisyonListesi(int masaNo)
+        public frmAdisyonListesi(int masaNo, bool hopiOlacak = false)
         {
             InitializeComponent();
+            hopiOlacakX = hopiOlacak;
             adisyonListesiGetir(masaNo);
         }
 
@@ -30,7 +32,7 @@ namespace Winsell.Hopi
         {
             SqlConnection cnn = clsGenel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.CEKNO, SUM((ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO GROUP BY RC.CEKNO";
+            cmd.CommandText = "SELECT RC.CEKNO, SUM((ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Tutar, CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0) = 0 THEN CAST(0 AS INT) ELSE CAST(1 AS INT) END AS Hopi_Var FROM RESCEK AS RC WHERE RC.MASANO = @MASANO GROUP BY RC.MASANO, RC.CEKNO";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             SqlDataAdapter DA = new SqlDataAdapter(cmd);
             DA.Fill(dtAdisyonlar);
@@ -71,16 +73,37 @@ namespace Winsell.Hopi
         {
             if (dgvAdisyonlar.CurrentRow != null)
             {
-                adisyonBilgisi.adisyonNo = dgvAdisyonlar.CurrentRow.Cells[colAdisyonNo.Name].Value.TOINT();
-                adisyonBilgisi.adisyonTutar = dgvAdisyonlar.CurrentRow.Cells[colTutar.Name].Value.TODECIMAL();
-                drReturn = DialogResult.OK;
-                Close();
+                if ((!hopiOlacakX && dgvAdisyonlar.CurrentRow.Cells[colHopiVar.Name].Value.TOINT() == 0) || (hopiOlacakX && dgvAdisyonlar.CurrentRow.Cells[colHopiVar.Name].Value.TOINT() != 0))
+                {
+                    adisyonBilgisi.adisyonNo = dgvAdisyonlar.CurrentRow.Cells[colAdisyonNo.Name].Value.TOINT();
+                    adisyonBilgisi.adisyonTutar = dgvAdisyonlar.CurrentRow.Cells[colTutar.Name].Value.TODECIMAL();
+                    drReturn = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    if (!hopiOlacakX)
+                        MessageBox.Show("Bu adisyonda daha önce hopi ödemesi/kazanımı yapılmış.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                    else
+                        MessageBox.Show("Bu adisyonda daha önce hopi ödemesi/kazanımı yapılmamış.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                }
             }
         }
 
         private void frmAdisyonListesi_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.DialogResult = drReturn;
+        }
+
+        private void dgvAdisyonlar_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            if (e.RowIndex > -1 && e.ColumnIndex > -1)
+            {
+                if (dgvAdisyonlar.Rows[e.RowIndex].Cells[colHopiVar.Name].Value.TOINT() == 1)
+                {
+                    e.CellStyle.BackColor = Color.Salmon;
+                }
+            }
         }
     }
 }

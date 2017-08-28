@@ -52,9 +52,9 @@ namespace Winsell.Hopi
             return kullaniciResponse;
         }
 
-        public static bool setAlisverisBilgisi(string kullaniciKoduWS, string sifreWS, clsHopi.AlisverisBilgisi alisverisBilgisi)
+        public static clsHopi.AlisverisResponse setAlisverisBilgisi(string kullaniciKoduWS, string sifreWS, clsHopi.AlisverisBilgisi alisverisBilgisi)
         {
-            bool blnReturn = false;
+            clsHopi.AlisverisResponse alisverisResponse = new clsHopi.AlisverisResponse();
 
             HopiWS.Checkout cRequest = new HopiWS.Checkout
             {
@@ -69,12 +69,12 @@ namespace Winsell.Hopi
             var vKdvGrupluTutarlar = from tab in alisverisBilgisi.urunler.AsEnumerable()
                                      group tab by tab.kdv
                                          into groupDt
-                                         select new
-                                         {
-                                             Kdv = groupDt.Key,
-                                             SumTutar = groupDt.Sum((r) => (r.tutar)),
-                                             SumIndirim = groupDt.Sum((r) => (r.indirimTutari))
-                                         };
+                                     select new
+                                     {
+                                         Kdv = groupDt.Key,
+                                         SumTutar = groupDt.Sum((r) => (r.tutar)),
+                                         SumIndirim = groupDt.Sum((r) => (r.indirimTutari))
+                                     };
 
             List<HopiWS.AmountDetail> arrDetails = new List<HopiWS.AmountDetail>();
             foreach (var v in vKdvGrupluTutarlar)
@@ -93,12 +93,12 @@ namespace Winsell.Hopi
                                       where tab.kampanyaKodlari.Count == 0
                                       group tab by tab.kdv
                                           into groupDt
-                                          select new
-                                          {
-                                              Kdv = groupDt.Key,
-                                              SumTutar = groupDt.Sum((r) => (r.tutar)),
-                                              SumIndirim = groupDt.Sum((r) => (r.indirimTutari))
-                                          };
+                                      select new
+                                      {
+                                          Kdv = groupDt.Key,
+                                          SumTutar = groupDt.Sum((r) => (r.tutar)),
+                                          SumIndirim = groupDt.Sum((r) => (r.indirimTutari))
+                                      };
 
             List<HopiWS.AmountDetail> arrDetails2 = new List<HopiWS.AmountDetail>();
             foreach (var v in vKdvGrupluTutarlar2)
@@ -121,45 +121,32 @@ namespace Winsell.Hopi
                 {
                     HopiWS.UsedCampaignDetail ucdDetail = new HopiWS.UsedCampaignDetail();
 
-                    ucdDetail.campaignCode = kampanya.kampanyaKodu;
-
-                    var vKampanyaliKdvGrupluTutarlar = from tab in alisverisBilgisi.urunler.AsEnumerable()
-                                                       where tab.kampanyaKodlari.Contains(kampanya.kampanyaKodu)
-                                                       group tab by tab.kdv
-                                                           into groupDt
-                                                           select new
-                                                           {
-                                                               Kdv = groupDt.Key,
-                                                               SumTutar = groupDt.Sum((r) => (r.tutar)),
-                                                               SumIndirimTutar = groupDt.Sum((r) => (r.indirimTutari)),
-                                                           };
-                     
                     Decimal dKazanc = kampanya.paracikKazanc.ROUNDTWO();
                     List<object> arrIndirim = new List<object>();
                     List<HopiWS.AmountDetail> arrCampDetails = new List<HopiWS.AmountDetail>();
-                    foreach (var v in vKampanyaliKdvGrupluTutarlar)
+
+                    ucdDetail.campaignCode = kampanya.kampanyaKodu;
+
+                    foreach (int intKey in kampanya.tutarlar.Keys)
                     {
-                        //decimal cikarilacakTutar = 0;
-                        //cikarilacakTutarlar.TryGetValue(v.Kdv.TOINT(), out cikarilacakTutar);
                         HopiWS.AmountDetail adCampDetail = new HopiWS.AmountDetail
                         {
-                            amount = (v.SumTutar - v.SumIndirimTutar).ROUNDTWO(), //BURADA SORUN VAR
-                            Item = v.Kdv.TOINT() //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
+                            Item = intKey, //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
+                            amount = kampanya.tutarlar[intKey].ROUNDTWO() //(v.SumTutar - cikarilacakTutar).ROUNDTWO(), //BURADA SORUN VAR
                         };
                         arrCampDetails.Add(adCampDetail);
-
-                        //if (!cikarilacakTutarlar.ContainsKey(v.Kdv.TOINT()))
-                        //    cikarilacakTutarlar.Add(v.Kdv.TOINT(), cikarilacakTutar + v.SumIndirimTutar);
-                        //else
-                        //    cikarilacakTutarlar[v.Kdv.TOINT()] = cikarilacakTutar + v.SumIndirimTutar;
-
+                    }
+                    
+                    foreach (int intKey in kampanya.indirimler.Keys)
+                    {
                         HopiWS.AmountDetail adIndirim = new HopiWS.AmountDetail
                         {
-                            Item = v.Kdv.TOINT(),
-                            amount = v.SumIndirimTutar.ROUNDTWO()
+                            Item = intKey,
+                            amount = kampanya.indirimler[intKey].ROUNDTWO()
                         };
                         arrIndirim.Add(adIndirim);
                     }
+
                     ucdDetail.amountDetails = arrCampDetails.ToArray();
                     //KAZANÇ İNDİRİM BİLGİSİ
                     ucdDetail.benefit = new HopiWS.BenefitDetail
@@ -199,10 +186,10 @@ namespace Winsell.Hopi
             //PARACIK KULLANIM BİLGİSİ
             if (alisverisBilgisi.kullanilacakParacik != 0)
             {
-                ulong provisionIdGelen = 1; //setKullanilacakParacikBilgisi(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, alisverisBilgisi.birdId, alisverisBilgisi.kullanilacakParacik);
+                ulong provisionIdGelen = setKullanilacakParacikBilgisi(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, alisverisBilgisi.birdId, alisverisBilgisi.kullanilacakParacik);
                 if (provisionIdGelen > 0)
                 {
-                    if (true) //(setKullanilacakParacikBilgisiIslemiBitir(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, provisionIdGelen))
+                    if (setKullanilacakParacikBilgisiIslemiBitir(kullaniciKoduWS, sifreWS, alisverisBilgisi.storeCode, provisionIdGelen))
                     {
                         cRequest.usedCoinDetails = new[] { new HopiWS.UsedCoinDetail() { provisionId = provisionIdGelen, amount = alisverisBilgisi.kullanilacakParacik } };
                     }
@@ -229,16 +216,18 @@ namespace Winsell.Hopi
                         OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
                         string BeyanXML = clsHopi.SerializeObject(cRequest).Remove(0, 1);
 
-                        string strFilePath = clsGenel.getExePath() + @"\Send\" + DateTime.Now.ToString("yyyy-MM-dd");
+                        string strFilePath = clsGenel.getExePath() + @"\Send\Satis\" + DateTime.Now.ToString("yyyy-MM-dd");
                         clsGenel.directoryControl(strFilePath);
                         StreamWriter SW = new StreamWriter(strFilePath + @"\" + alisverisBilgisi.transactionId + ".xml");
                         SW.Write(BeyanXML);
                         SW.Close();
                         SW.Dispose();
 
-                        //client.NotifyCheckout(cRequest);
+                        client.NotifyCheckout(cRequest);
 
-                        blnReturn = true;
+                        alisverisResponse.basarili = true;
+                        if (cRequest.usedCoinDetails != null && cRequest.usedCoinDetails.Length > 0)
+                            alisverisResponse.odemeTransactionId = cRequest.usedCoinDetails[0].provisionId.TOSTRING();
                     }
                 }
                 catch (Exception ex)
@@ -251,32 +240,32 @@ namespace Winsell.Hopi
             }
 
 
-            return blnReturn;
+            return alisverisResponse;
         }
 
-        public static ulong setIadeAlisverisBilgisi(string kullaniciKoduWS, string sifreWS, clsHopi.AlisverisBilgisi alisverisBilgisi)
+        public static clsHopi.AlisverisIadeResponse setIadeAlisverisBilgisi(string kullaniciKoduWS, string sifreWS, clsHopi.AlisverisIadeBilgisi alisverisIadeBilgisi)
         {
-            ulong uReturn = 0;
+            clsHopi.AlisverisIadeResponse alisverisIadeResponse = new clsHopi.AlisverisIadeResponse();
 
             StartReturnTransactionRequest srtrRequest = new StartReturnTransactionRequest
             {
-                storeCode = alisverisBilgisi.storeCode,
-                transactionId = alisverisBilgisi.transactionId,
-                returnCampaignDetails = alisverisBilgisi.kampanyalar.Select(kampanya => new ReturnCampaignDetail
+                storeCode = alisverisIadeBilgisi.storeCode,
+                transactionId = alisverisIadeBilgisi.transactionId,
+                campaignFreeAmount = alisverisIadeBilgisi.kampanyasizTutar,
+                returnCampaignDetails = alisverisIadeBilgisi.kampanyalar.Select(kampanya => new ReturnCampaignDetail
                 {
                     campaignCode = kampanya.kampanyaKodu,
-                    returnPayment = alisverisBilgisi.kullanilacakParacik,
-                    requestedCoinReturnAmount = kampanya.paracikKazanc
+                    returnPayment = kampanya.tutar,
+                    requestedCoinReturnAmount = kampanya.iadeParacik
                 }).ToArray(),
-                transactionInfos = alisverisBilgisi.urunler.Select(urun => new HopiWS.TransactionInfo
+
+                transactionInfos = alisverisIadeBilgisi.urunler.Select(urun => new HopiWS.TransactionInfo
                 {
                     barcode = urun.barkod,
                     quantity = urun.miktar,
                     amount = urun.tutar,
                     campaign = urun.kampanyaKodlari.ToArray()
-                }).ToArray(),
-                campaignFreeAmount =
-                    alisverisBilgisi.urunler.AsEnumerable().Where(u => u.kampanyaKodlari.Count == 0).Sum(u => u.tutar)
+                }).ToArray()
             };
 
             HopiWS.PosPortClient client = new HopiWS.PosPortClient();
@@ -285,8 +274,18 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+                    string BeyanXML = clsHopi.SerializeObject(srtrRequest).Remove(0, 1);
+
+                    string strFilePath = clsGenel.getExePath() + @"\Send\Iade\" + DateTime.Now.ToString("yyyy-MM-dd");
+                    clsGenel.directoryControl(strFilePath);
+                    StreamWriter SW = new StreamWriter(strFilePath + @"\" + srtrRequest.transactionId + ".xml");
+                    SW.Write(BeyanXML);
+                    SW.Close();
+                    SW.Dispose();
+
                     StartReturnTransactionResponse response = client.StartReturnTransaction(srtrRequest);
-                    uReturn = response.returnTrxId;
+                    alisverisIadeResponse.returnTrxId = response.returnTrxId;
+                    alisverisIadeResponse.artan = response.residual;
                 }
             }
             catch (Exception ex)
@@ -295,7 +294,7 @@ namespace Winsell.Hopi
             }
             client.Close();
 
-            return uReturn;
+            return alisverisIadeResponse;
         }
 
         public static ulong setKullanilacakParacikBilgisi(string kullaniciKoduWS, string sifreWS, string storeCode, long birdId, decimal kullanilacakParacik)

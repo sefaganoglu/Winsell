@@ -58,6 +58,7 @@
             this.lblKullanici = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.pbLogo = new System.Windows.Forms.PictureBox();
+            this.tsbHopiIade = new System.Windows.Forms.ToolStripButton();
             this.pnlIslemler.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvStoklar)).BeginInit();
             this.tsMasaIslemler.SuspendLayout();
@@ -103,13 +104,13 @@
             this.colMiktar,
             this.colTutar});
             this.dgvStoklar.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvStoklar.Location = new System.Drawing.Point(0, 231);
+            this.dgvStoklar.Location = new System.Drawing.Point(0, 289);
             this.dgvStoklar.MultiSelect = false;
             this.dgvStoklar.Name = "dgvStoklar";
             this.dgvStoklar.RowHeadersVisible = false;
             this.dgvStoklar.RowHeadersWidth = 24;
             this.dgvStoklar.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvStoklar.Size = new System.Drawing.Size(296, 350);
+            this.dgvStoklar.Size = new System.Drawing.Size(296, 292);
             this.dgvStoklar.TabIndex = 6;
             // 
             // colStokAdi
@@ -144,7 +145,7 @@
             this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label3.Dock = System.Windows.Forms.DockStyle.Top;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
-            this.label3.Location = new System.Drawing.Point(0, 206);
+            this.label3.Location = new System.Drawing.Point(0, 264);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(296, 25);
             this.label3.TabIndex = 7;
@@ -159,12 +160,13 @@
             this.tsbHesapBol,
             this.toolStripSeparator2,
             this.tsbOdemeAl,
+            this.tsbHopiIade,
             this.toolStripSeparator3,
             this.tsbKapatPanel});
             this.tsMasaIslemler.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
             this.tsMasaIslemler.Location = new System.Drawing.Point(0, 75);
             this.tsMasaIslemler.Name = "tsMasaIslemler";
-            this.tsMasaIslemler.Size = new System.Drawing.Size(296, 131);
+            this.tsMasaIslemler.Size = new System.Drawing.Size(296, 189);
             this.tsMasaIslemler.TabIndex = 5;
             this.tsMasaIslemler.Text = "toolStrip1";
             // 
@@ -352,6 +354,16 @@
             this.pbLogo.TabIndex = 2;
             this.pbLogo.TabStop = false;
             // 
+            // tsbHopiIade
+            // 
+            this.tsbHopiIade.Image = ((System.Drawing.Image)(resources.GetObject("tsbHopiIade.Image")));
+            this.tsbHopiIade.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.tsbHopiIade.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbHopiIade.Name = "tsbHopiIade";
+            this.tsbHopiIade.Size = new System.Drawing.Size(294, 36);
+            this.tsbHopiIade.Text = "Hopi İade";
+            this.tsbHopiIade.Click += new System.EventHandler(this.tsbHopiIade_Click);
+            // 
             // frmAnaMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -415,5 +427,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colMiktar;
         private System.Windows.Forms.DataGridViewTextBoxColumn colTutar;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ToolStripButton tsbHopiIade;
     }
 }

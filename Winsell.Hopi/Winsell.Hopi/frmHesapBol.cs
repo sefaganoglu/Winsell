@@ -181,5 +181,15 @@ namespace Winsell.Hopi
                 DR.Cells[colMiktarDegisim.Name].Value = DR.Cells[colMiktarGercek.Name].Value;
             }
         }
+
+        private void dgvStoklar_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex > -1 && e.ColumnIndex > -1)
+            {
+                decimal dToplamTutar = dtStoklar.AsEnumerable().Where(x => x["Sec"].TOINT() == 1).Sum(x => x["Tutar"].TODECIMAL() * x["MIKTAR_DEG"].TODECIMAL() / x["MIKTAR"].TODECIMAL());
+
+                lblToplamTutar.Text = dToplamTutar.ToString("N2");
+            }
+        }
     }
 }

@@ -9,12 +9,6 @@ namespace Winsell.Hopi.fProject
 {
     public static class clsSiniflar
     {
-        public enum KampanyaTipi
-        {
-            Indirim = 0,
-            Kazanc = 1
-        }
-
         public class Masa
         {
             public int masaNo = 0;
@@ -43,6 +37,8 @@ namespace Winsell.Hopi.fProject
             public decimal maksimumKazanc = 0;
             public decimal miktar = 0;
             public decimal fiyatsalSinir = 0;
+            public Dictionary<int, decimal> indirimler = new Dictionary<int, decimal>();
+            public Dictionary<int, decimal> tutarlar = new Dictionary<int, decimal>();
         }
 
         public class KimlikBilgisi

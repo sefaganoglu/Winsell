@@ -28,14 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAdisyonListesi));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dgvAdisyonlar = new System.Windows.Forms.DataGridView();
-            this.colAdisyonNo = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colTutar = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dgvStoklar = new System.Windows.Forms.DataGridView();
             this.colStokAdi = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colMiktar = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -49,6 +47,9 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.colAdisyonNo = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colTutar = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colHopiVar = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAdisyonlar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvStoklar)).BeginInit();
             this.tsMenu.SuspendLayout();
@@ -59,12 +60,13 @@
             // 
             this.dgvAdisyonlar.AllowUserToAddRows = false;
             this.dgvAdisyonlar.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle5.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.dgvAdisyonlar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.LightSteelBlue;
+            this.dgvAdisyonlar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvAdisyonlar.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvAdisyonlar.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colAdisyonNo,
-            this.colTutar});
+            this.colTutar,
+            this.colHopiVar});
             this.dgvAdisyonlar.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgvAdisyonlar.Location = new System.Drawing.Point(0, 74);
             this.dgvAdisyonlar.MultiSelect = false;
@@ -74,30 +76,14 @@
             this.dgvAdisyonlar.Size = new System.Drawing.Size(458, 140);
             this.dgvAdisyonlar.TabIndex = 1;
             this.dgvAdisyonlar.CellEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvAdisyonlar_CellEnter);
-            // 
-            // colAdisyonNo
-            // 
-            this.colAdisyonNo.DataPropertyName = "CEKNO";
-            this.colAdisyonNo.HeaderText = "Adisyon No";
-            this.colAdisyonNo.Name = "colAdisyonNo";
-            this.colAdisyonNo.ReadOnly = true;
-            // 
-            // colTutar
-            // 
-            this.colTutar.DataPropertyName = "Tutar";
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle6.Format = "N2";
-            this.colTutar.DefaultCellStyle = dataGridViewCellStyle6;
-            this.colTutar.HeaderText = "Tutar";
-            this.colTutar.Name = "colTutar";
-            this.colTutar.ReadOnly = true;
+            this.dgvAdisyonlar.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dgvAdisyonlar_CellPainting);
             // 
             // dgvStoklar
             // 
             this.dgvStoklar.AllowUserToAddRows = false;
             this.dgvStoklar.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle7.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.dgvStoklar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.LightSteelBlue;
+            this.dgvStoklar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dgvStoklar.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvStoklar.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colStokAdi,
@@ -132,9 +118,9 @@
             // dataGridViewTextBoxColumn1
             // 
             this.dataGridViewTextBoxColumn1.DataPropertyName = "Tutar";
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle8.Format = "N2";
-            this.dataGridViewTextBoxColumn1.DefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle4.Format = "N2";
+            this.dataGridViewTextBoxColumn1.DefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridViewTextBoxColumn1.HeaderText = "Tutar";
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
             this.dataGridViewTextBoxColumn1.ReadOnly = true;
@@ -227,6 +213,31 @@
             this.label2.Text = "MASADAKİ ADİSYONLAR";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // colAdisyonNo
+            // 
+            this.colAdisyonNo.DataPropertyName = "CEKNO";
+            this.colAdisyonNo.HeaderText = "Adisyon No";
+            this.colAdisyonNo.Name = "colAdisyonNo";
+            this.colAdisyonNo.ReadOnly = true;
+            // 
+            // colTutar
+            // 
+            this.colTutar.DataPropertyName = "Tutar";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle2.Format = "N2";
+            this.colTutar.DefaultCellStyle = dataGridViewCellStyle2;
+            this.colTutar.HeaderText = "Tutar";
+            this.colTutar.Name = "colTutar";
+            this.colTutar.ReadOnly = true;
+            // 
+            // colHopiVar
+            // 
+            this.colHopiVar.DataPropertyName = "Hopi_Var";
+            this.colHopiVar.HeaderText = "Hopi Var";
+            this.colHopiVar.Name = "colHopiVar";
+            this.colHopiVar.ReadOnly = true;
+            this.colHopiVar.Visible = false;
+            // 
             // frmAdisyonListesi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -274,5 +285,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colAdisyonNoStok;
         private System.Windows.Forms.DataGridViewTextBoxColumn colAdisyonNo;
         private System.Windows.Forms.DataGridViewTextBoxColumn colTutar;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colHopiVar;
     }
 }

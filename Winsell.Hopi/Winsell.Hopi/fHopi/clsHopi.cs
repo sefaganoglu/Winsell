@@ -13,12 +13,6 @@ namespace Winsell.Hopi
 {
     public static class clsHopi
     {
-        public enum KampanyaTipi
-        {
-            Indirim = 0,
-            Kazanc = 1
-        }
-
         public class AlisverisBilgisi
         {
             public long birdId = 0;
@@ -27,9 +21,32 @@ namespace Winsell.Hopi
             public string storeCode = "";
             public DateTime dateTime = DateTime.Now;
             public long hopiPayId = 0;
-            public Urun[] urunler;
+            public List<Urun> urunler = new List<Urun>();
             public decimal kullanilacakParacik = 0;
             public List<Kampanya> kampanyalar = new List<Kampanya>();
+        }
+
+        public class AlisverisIadeBilgisi
+        {
+            public string transactionId = "";
+            public string storeCode = "";
+            public decimal kampanyasizTutar = 0;
+            public decimal kazanilanParacik = 0;
+            public string odemeTransactionId = "";
+            public List<KampanyaIade> kampanyalar = new List<KampanyaIade>();
+            public List<Urun> urunler = new List<Urun>();
+        }
+
+        public class AlisverisIadeResponse
+        {
+            public ulong returnTrxId = 0;
+            public decimal artan = 0;
+        }
+
+        public class AlisverisResponse
+        {
+            public bool basarili = false;
+            public string odemeTransactionId = "";
         }
 
         public class Urun
@@ -46,9 +63,17 @@ namespace Winsell.Hopi
 
         public class Kampanya
         {
-            public KampanyaTipi kampanyaTipi = KampanyaTipi.Indirim;
             public string kampanyaKodu = "";
             public decimal paracikKazanc = 0;
+            public Dictionary<int, decimal> indirimler = new Dictionary<int, decimal>();
+            public Dictionary<int, decimal> tutarlar = new Dictionary<int, decimal>();
+        }
+
+        public class KampanyaIade
+        {
+            public string kampanyaKodu = "";
+            public decimal tutar = 0;
+            public decimal iadeParacik = 0;
         }
 
         public class Kullanici

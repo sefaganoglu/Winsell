@@ -100,7 +100,7 @@ namespace Winsell.Hopi.fProject
             return blnReturn;
         }
 
-        public static clsSiniflar.AdisyonBilgisi secAdisyon(int masaNo)
+        public static clsSiniflar.AdisyonBilgisi secAdisyon(int masaNo, bool hopiOlacak = false)
         {
             clsSiniflar.AdisyonBilgisi adisyonBilgisi = new clsSiniflar.AdisyonBilgisi();
 
@@ -123,7 +123,7 @@ namespace Winsell.Hopi.fProject
             }
             else
             {
-                frmAdisyonListesi falAdisyonListesi = new frmAdisyonListesi(masaNo);
+                frmAdisyonListesi falAdisyonListesi = new frmAdisyonListesi(masaNo, hopiOlacak);
                 if (falAdisyonListesi.ShowDialog() == DialogResult.OK)
                     adisyonBilgisi = falAdisyonListesi.adisyonBilgisi;
                 falAdisyonListesi.Dispose();
@@ -161,9 +161,7 @@ namespace Winsell.Hopi.fProject
             clsSiniflar.KimlikBilgisi kimlikBilgisi = null;
             frmKimlikOkuma fkoKimlikOkuma = new frmKimlikOkuma();
             if (fkoKimlikOkuma.ShowDialog() == DialogResult.OK)
-            {
                 kimlikBilgisi = fkoKimlikOkuma.kimlikBilgisi;
-            }
             fkoKimlikOkuma.Dispose();
             return kimlikBilgisi;
         }
@@ -179,7 +177,7 @@ namespace Winsell.Hopi.fProject
             fklKampanyaListesi.Dispose();
             return kampanyaBilgisi;
         }
-        
+
 
         public static string getExePath()
         {
