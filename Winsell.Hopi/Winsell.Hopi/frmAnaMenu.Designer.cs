@@ -42,6 +42,7 @@
             this.tsbHesapBol = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbOdemeAl = new System.Windows.Forms.ToolStripButton();
+            this.tsbHopiIade = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbKapatPanel = new System.Windows.Forms.ToolStripButton();
             this.lblMasaNo = new System.Windows.Forms.Label();
@@ -58,7 +59,6 @@
             this.lblKullanici = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.pbLogo = new System.Windows.Forms.PictureBox();
-            this.tsbHopiIade = new System.Windows.Forms.ToolStripButton();
             this.pnlIslemler.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvStoklar)).BeginInit();
             this.tsMasaIslemler.SuspendLayout();
@@ -194,6 +194,16 @@
             this.tsbOdemeAl.Size = new System.Drawing.Size(294, 36);
             this.tsbOdemeAl.Text = "Hopi Öde/Kazan";
             this.tsbOdemeAl.Click += new System.EventHandler(this.tsbOdemeAl_Click);
+            // 
+            // tsbHopiIade
+            // 
+            this.tsbHopiIade.Image = ((System.Drawing.Image)(resources.GetObject("tsbHopiIade.Image")));
+            this.tsbHopiIade.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.tsbHopiIade.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbHopiIade.Name = "tsbHopiIade";
+            this.tsbHopiIade.Size = new System.Drawing.Size(294, 36);
+            this.tsbHopiIade.Text = "Hopi İade";
+            this.tsbHopiIade.Click += new System.EventHandler(this.tsbHopiIade_Click);
             // 
             // toolStripSeparator3
             // 
@@ -353,16 +363,6 @@
             this.pbLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbLogo.TabIndex = 2;
             this.pbLogo.TabStop = false;
-            // 
-            // tsbHopiIade
-            // 
-            this.tsbHopiIade.Image = ((System.Drawing.Image)(resources.GetObject("tsbHopiIade.Image")));
-            this.tsbHopiIade.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.tsbHopiIade.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbHopiIade.Name = "tsbHopiIade";
-            this.tsbHopiIade.Size = new System.Drawing.Size(294, 36);
-            this.tsbHopiIade.Text = "Hopi İade";
-            this.tsbHopiIade.Click += new System.EventHandler(this.tsbHopiIade_Click);
             // 
             // frmAnaMenu
             // 
