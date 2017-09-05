@@ -80,7 +80,7 @@ namespace Winsell.Hopi
                               "INNER JOIN RESCEK AS RC ON RC.TARIH >= H.BAS_TARIHI AND RC.TARIH <= H.BIT_TARIHI AND RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO " +
                               "WHERE H.AKTIF = 1 " +
                               (string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()) ? "AND (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0" : "") +
-                              ") AS A INNER JOIN HOPI H ON A.KOD = H.KOD " +
+                              ") AS A INNER JOIN HOPI H ON A.KOD = H.KOD AND H.ID = (SELECT MIN(ID) FROM HOPI WHERE KOD = H.KOD) " +
                               "WHERE " +
                               "   (ISNULL(LTRIM(RTRIM(STOKKODU  )), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (StokMiktar <> 0 OR StokTutar <> 0)))) " +
                               "OR (ISNULL(LTRIM(RTRIM(ANAGRUP   )), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (GrupMiktar <> 0 OR GrupTutar <> 0)))) " +

@@ -53,4 +53,3 @@ F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.pdb
 F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.exe.config
 F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.exe
 F:\SEFA\Winsell\Winsell.Hopi\Winsell.Hopi\bin\Debug\Winsell.Hopi.pdb
-D:\Projects\visual studio\Winsell\Winsell.Hopi\Winsell.Hopi\obj\Debug\Winsell.Hopi.csprojResolveAssemblyReference.cache
