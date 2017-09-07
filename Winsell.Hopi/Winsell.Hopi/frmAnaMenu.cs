@@ -66,7 +66,7 @@ namespace Winsell.Hopi
             SqlConnection cnn = clsGenel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
             cmd.CommandText = "SELECT DISTINCT RC.MASANO, RC.MASANOSTR, (SELECT SUM((ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT))) - ISNULL(ALACAK, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO) AS Tutar, " +
-                              "CASE WHEN (SELECT COUNT(CEKNO) FROM (SELECT DISTINCT CEKNO, CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = A.MASANO AND CEKNO = A.CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0) > 0 THEN CAST(0 AS INT) ELSE CAST(1 AS INT) END AS Kullanilabilir FROM RESCEK AS A WHERE MASANO = RC.MASANO) AS A WHERE Kullanilabilir = 1) > 0 THEN 1 ELSE 0 END AS Kullanilabilir " +
+                              "CASE WHEN (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO) > 0 THEN 0 ELSE 1 END AS Kullanilabilir " +
                               "FROM RESCEK AS RC " +
                               "ORDER BY RC.MASANOSTR";
             SqlDataReader reader = cmd.ExecuteReader();
@@ -193,6 +193,8 @@ namespace Winsell.Hopi
                             foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
                             {
                                 decimal adisyondanDusulecekIndirim = 0;
+
+                                decimal dblKampanyayaDahilTutar = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar);
                                 if (kampanya.indirimKat > 0)
                                 {
                                     foreach (clsHopi.Urun urun in arrUrun)
@@ -204,10 +206,15 @@ namespace Winsell.Hopi
                                             else
                                                 kampanya.tutarlar.Add(urun.kdv, urun.tutar - urun.indirimTutari);
 
-                                            decimal gercekParacik = (kampanyaBilgisi.paracik > kampanya.maksimumKatParacik ? kampanya.maksimumKatParacik : kampanyaBilgisi.paracik);
+                                            decimal gercekParacik = 0;
+                                            if (kampanya.maksimumKatParacik != 0)
+                                                gercekParacik = (kampanyaBilgisi.paracik > kampanya.maksimumKatParacik ? kampanya.maksimumKatParacik : kampanyaBilgisi.paracik);
+                                            else
+                                                gercekParacik = kampanyaBilgisi.paracik;
+
                                             if (gercekParacik * kampanya.indirimKat > adisyonBilgisi.adisyonTutar)
                                                 gercekParacik = adisyonBilgisi.adisyonTutar / kampanya.indirimKat;
-                                            decimal indirimOrani = ((gercekParacik * kampanya.indirimKat) - gercekParacik) / (adisyonBilgisi.adisyonTutar) * 100.TODECIMAL();
+                                            decimal indirimOrani = ((gercekParacik * kampanya.indirimKat) - gercekParacik) / (dblKampanyayaDahilTutar) * 100.TODECIMAL();
 
                                             //indirimOrani = indirimOrani > 100 ? 100 : indirimOrani;
 
@@ -232,6 +239,8 @@ namespace Winsell.Hopi
                             foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
                             {
                                 decimal adisyondanDusulecekIndirim = 0;
+
+                                decimal dblKampanyayaDahilTutar = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar);
                                 if (kampanya.indirimOrani > 0)
                                 {
                                     foreach (clsHopi.Urun urun in arrUrun)
@@ -498,8 +507,8 @@ namespace Winsell.Hopi
                 tsbYenile.PerformClick();
                 this.Visible = true;
 
-                if (!string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()))
-                    clsGenel.kampanyaGuncelle();
+                //if (!string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()))
+                //    clsGenel.kampanyaGuncelle();
             }
             else
                 this.Close();
@@ -514,7 +523,7 @@ namespace Winsell.Hopi
                 SqlConnection cnn = clsGenel.createDBConnection();
                 SqlCommand cmd = cnn.CreateCommand();
 
-                cmd.CommandText = "SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0";
+                cmd.CommandText = "SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
                 cmd.Parameters.AddWithValue("@MASANO", masaNo);
                 cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
                 if (cmd.ExecuteScalar().TOINT() != 0)
