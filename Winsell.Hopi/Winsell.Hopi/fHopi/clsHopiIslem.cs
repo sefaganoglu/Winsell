@@ -38,6 +38,9 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+
+                    clsHopi.SaveToFile("Kullanici", DateTime.Now.ToString("yyyyMMddHHmmssfff") + "_" + kullanici.storeCode + "_" + kullanici.token.Replace(" ", ""), gbuirRequest);
+
                     HopiWS.GetBirdUserInfoResponse response = client.GetBirdUserInfo(gbuirRequest);
                     kullaniciResponse.birdId = response.birdId;
                     kullaniciResponse.paracik = response.coinBalance;
@@ -136,7 +139,7 @@ namespace Winsell.Hopi
                         };
                         arrCampDetails.Add(adCampDetail);
                     }
-                    
+
                     foreach (int intKey in kampanya.indirimler.Keys)
                     {
                         HopiWS.AmountDetail adIndirim = new HopiWS.AmountDetail
@@ -214,14 +217,8 @@ namespace Winsell.Hopi
                     using (new OperationContextScope(client.InnerChannel))
                     {
                         OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
-                        string BeyanXML = clsHopi.SerializeObject(cRequest).Remove(0, 1);
 
-                        string strFilePath = clsGenel.getExePath() + @"\Send\Satis\" + DateTime.Now.ToString("yyyy-MM-dd");
-                        clsGenel.directoryControl(strFilePath);
-                        StreamWriter SW = new StreamWriter(strFilePath + @"\" + alisverisBilgisi.transactionId + ".xml");
-                        SW.Write(BeyanXML);
-                        SW.Close();
-                        SW.Dispose();
+                        clsHopi.SaveToFile("Satis", alisverisBilgisi.transactionId, cRequest);
 
                         client.NotifyCheckout(cRequest);
 
@@ -251,6 +248,7 @@ namespace Winsell.Hopi
             {
                 storeCode = alisverisIadeBilgisi.storeCode,
                 transactionId = alisverisIadeBilgisi.transactionId,
+                campaignFreeAmountSpecified = true,
                 campaignFreeAmount = alisverisIadeBilgisi.kampanyasizTutar,
                 returnCampaignDetails = alisverisIadeBilgisi.kampanyalar.Select(kampanya => new ReturnCampaignDetail
                 {
@@ -274,14 +272,8 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
-                    string BeyanXML = clsHopi.SerializeObject(srtrRequest).Remove(0, 1);
 
-                    string strFilePath = clsGenel.getExePath() + @"\Send\Iade\" + DateTime.Now.ToString("yyyy-MM-dd");
-                    clsGenel.directoryControl(strFilePath);
-                    StreamWriter SW = new StreamWriter(strFilePath + @"\" + srtrRequest.transactionId + ".xml");
-                    SW.Write(BeyanXML);
-                    SW.Close();
-                    SW.Dispose();
+                    clsHopi.SaveToFile("SatisIade", alisverisIadeBilgisi.transactionId, srtrRequest);
 
                     StartReturnTransactionResponse response = client.StartReturnTransaction(srtrRequest);
                     alisverisIadeResponse.returnTrxId = response.returnTrxId;
@@ -314,6 +306,7 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+                    clsHopi.SaveToFile("Harcama", DateTime.Now.ToString("yyyyMMddHHmmssfff") + "_" + storeCode + "_" + birdId.TOSTRING(), coinTransactionRequest);
                     StartCoinTransactionResponse startCoinTransactionResponse = client.StartCoinTransaction(coinTransactionRequest);
                     ulReturn = startCoinTransactionResponse.provisionId; //Ödeme sisteminde ilgili işlem için yaratılan ödeme kimlik numarası.
                 }
@@ -343,6 +336,7 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+                    clsHopi.SaveToFile("HarcamaComplete", storeCode + "_" + provisionId.TOSTRING(), coinTransactionRequest);
                     client.CompleteCoinTransaction(coinTransactionRequest);
                     blnReturn = true;
                 }
@@ -372,6 +366,7 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+                    clsHopi.SaveToFile("HarcamaIptal", cancelCoinTransaction.storeCode + "_" + provisionId.TOSTRING(), cancelCoinTransaction);
                     client.CancelCoinTransaction(cancelCoinTransaction);
                     blnReturn = true;
                 }
@@ -401,6 +396,7 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+                    clsHopi.SaveToFile("HarcamaIade", refundCoinTransactionRequest.storeCode + "_" + provisionId.TOSTRING(), refundCoinTransactionRequest);
                     client.RefundCoin(refundCoinTransactionRequest);
                     blnReturn = true;
                 }
@@ -429,6 +425,7 @@ namespace Winsell.Hopi
                 using (new OperationContextScope(client.InnerChannel))
                 {
                     OperationContext.Current.OutgoingMessageHeaders.Add(new SecurityHeader("UsernameToken-49", kullaniciKoduWS, sifreWS));
+                    clsHopi.SaveToFile("SatisIadeComplete", storeCode + "_" + returnTrxId.TOSTRING(), returnTransactionRequest);
                     client.CompleteReturnTransaction(returnTransactionRequest);
                     blnReturn = true;
                 }

@@ -16,6 +16,7 @@ namespace Winsell.Hopi.fProject
             public decimal tutar = 0;
             public int width = 100;
             public int height = 100;
+            public string yetki = "000";
             public Color color = Color.Salmon;
         }
         

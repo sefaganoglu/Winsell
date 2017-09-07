@@ -32,20 +32,26 @@ namespace Winsell.Hopi
         {
             SqlConnection cnn = clsGenel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.CEKNO, SUM((ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Tutar, CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0) = 0 THEN CAST(0 AS INT) ELSE CAST(1 AS INT) END AS Hopi_Var FROM RESCEK AS RC WHERE RC.MASANO = @MASANO GROUP BY RC.MASANO, RC.CEKNO";
+            cmd.CommandText = "SELECT RC.CEKNO, SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) - " +
+                              "(ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS FLOAT)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) / 100) " +
+                              "AS Tutar, CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0) = 0 THEN CAST(0 AS INT) ELSE CAST(1 AS INT) END AS Hopi_Var FROM RESCEK AS RC WHERE RC.MASANO = @MASANO GROUP BY RC.MASANO, RC.CEKNO";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             SqlDataAdapter DA = new SqlDataAdapter(cmd);
             DA.Fill(dtAdisyonlar);
             DA.Dispose();
             cmd.Parameters.Clear();
 
-            cmd.CommandText = "SELECT RC.CEKNO, RC.STOKKODU, RC.STOKADI, MIKTAR_ACK, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT)) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.KOD = 'B'";
+            cmd.CommandText = "SELECT RC.CEKNO, RC.STOKKODU, RC.STOKADI, MIKTAR_ACK, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
+                              "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                              "AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.KOD = 'B'";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             DA = new SqlDataAdapter(cmd);
             DA.Fill(dtStoklar);
             DA.Dispose();
             cmd.Dispose();
             cnn.Close();
+
+
 
             dgvAdisyonlar.DataSource = dtAdisyonlar;
             dvStoklar = new DataView(dtStoklar);

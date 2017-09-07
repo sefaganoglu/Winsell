@@ -23,7 +23,6 @@ namespace Winsell.Hopi
         private decimal adisyonTutariX = 0;
         private DataTable dtKampanyalar = new DataTable();
 
-        TextBox txtFocusedTextBox = null;
         public frmKampanyaListesi(int masaNo, int adisyonNo, decimal paracik, decimal adisyonTutari)
         {
             InitializeComponent();
@@ -32,11 +31,10 @@ namespace Winsell.Hopi
             adisyonNoX = adisyonNo;
             paracikX = paracik;
             adisyonTutariX = adisyonTutari;
-            btnSeparator.Text = clsGenel.numberSeparator;
             lblKullanilabilirLimit.Text = paracik.ToString("N2");
             lblAdisyonTutari.Text = adisyonTutari.ToString("N2");
-
-            txtFocusedTextBox = txtParacik;
+            txtParacik.Text = "0";
+            txtParacikKusurat.Text = "00";
 
             kampanyaListesiGetir();
         }
@@ -44,14 +42,22 @@ namespace Winsell.Hopi
 
         private void btn7_Click(object sender, EventArgs e)
         {
-            txtFocusedTextBox.Text += ((Button)sender).Text;
+            if (txtParacikKusurat.Text.Substring(0, 1) == "0" && txtParacik.Text == "0")
+            {
+                txtParacikKusurat.Text = txtParacikKusurat.Text.Substring(1, 1) + ((Button)sender).Text;
+            }
+            else
+            {
+                if (txtParacik.Text == "0") txtParacik.Clear();
+                txtParacik.Text += txtParacikKusurat.Text.Substring(0, 1);
+                txtParacikKusurat.Text = txtParacikKusurat.Text.Substring(1, 1) + ((Button)sender).Text;
+            }
         }
 
         private void btnSil_Click(object sender, EventArgs e)
         {
-            txtParacik.Clear();
-            txtParacikKusurat.Clear();
-            txtParacik.Focus();
+            txtParacik.Text = "0";
+            txtParacikKusurat.Text = "00";
         }
 
         private void kampanyaListesiGetir()
@@ -69,23 +75,23 @@ namespace Winsell.Hopi
 
                               "FROM " +
                               "(SELECT DISTINCT H.KOD, H.ACIKLAMA, " +
-                              "ISNULL((SELECT SUM(ISNULL((MIKTAR), CAST(0 AS FLOAT))) AS Miktar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND STOKKODU = H.STOKKODU), CAST(0 AS FLOAT)) AS StokMiktar, " +
-                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO AND SM.YEMEK_KODU1 = H.ANAGRUP), CAST(0 AS FLOAT)) AS GrupMiktar, " +
-                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO AND SM.SINIF_KODU = H.SINIF_KODU), CAST(0 AS FLOAT)) AS SinifMiktar, " +
-                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND H.STOKKODU = ISNULL(GARNITUR_MASTER_STOKKODU, STOKKODU)), CAST(0 AS FLOAT)) AS StokTutar, " +
-                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO AND SM.YEMEK_KODU1 = H.ANAGRUP), CAST(0 AS FLOAT)) AS GrupTutar, " +
-                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO AND SM.SINIF_KODU = H.SINIF_KODU), CAST(0 AS FLOAT)) AS SinifTutar, " +
-                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS AdisyonTutar " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN HOPI_STOK AS HS ON HS.KOD = H.KOD AND HS.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS StokMiktar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU INNER JOIN HOPI_ANAGRUP AS HS ON HS.KOD = H.KOD AND HS.ANAGRUP = SM.YEMEK_KODU1 WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS GrupMiktar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU INNER JOIN HOPI_SINIF AS HS ON HS.KOD = H.KOD AND HS.SINIFKODU = SM.SINIF_KODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS SinifMiktar, " +
+                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN HOPI_STOK AS HS ON HS.KOD = H.KOD AND HS.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS StokTutar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) INNER JOIN HOPI_ANAGRUP AS HS ON HS.KOD = H.KOD AND HS.ANAGRUP = SM.YEMEK_KODU1 WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS GrupTutar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) INNER JOIN HOPI_SINIF AS HS ON HS.KOD = H.KOD AND HS.SINIFKODU = SM.SINIF_KODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS SinifTutar, " +
+                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS AdisyonTutar " +
                               "FROM HOPI AS H " +
                               "INNER JOIN RESCEK AS RC ON RC.TARIH >= H.BAS_TARIHI AND RC.TARIH <= H.BIT_TARIHI AND RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO " +
                               "WHERE H.AKTIF = 1 " +
                               (string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()) ? "AND (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0" : "") +
                               ") AS A INNER JOIN HOPI H ON A.KOD = H.KOD AND H.ID = (SELECT MIN(ID) FROM HOPI WHERE KOD = H.KOD) " +
                               "WHERE " +
-                              "   (ISNULL(LTRIM(RTRIM(STOKKODU  )), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (StokMiktar <> 0 OR StokTutar <> 0)))) " +
-                              "OR (ISNULL(LTRIM(RTRIM(ANAGRUP   )), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (GrupMiktar <> 0 OR GrupTutar <> 0)))) " +
-                              "OR (ISNULL(LTRIM(RTRIM(SINIF_KODU)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= SinifMiktar) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= SinifTutar) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (SinifMiktar <> 0 OR SinifTutar <> 0)))) " +
-                              "OR (ISNULL(LTRIM(RTRIM(STOKKODU  )), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(SINIF_KODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= AdisyonTutar) " +
+                              "   ((SELECT COUNT(STOKKODU  ) FROM HOPI_STOK    WHERE KOD = H.KOD) > 0 AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (StokMiktar <> 0 OR StokTutar <> 0)))) " +
+                              "OR ((SELECT COUNT(ANAGRUP   ) FROM HOPI_ANAGRUP WHERE KOD = H.KOD) > 0 AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (GrupMiktar <> 0 OR GrupTutar <> 0)))) " +
+                              "OR ((SELECT COUNT(SINIFKODU ) FROM HOPI_SINIF   WHERE KOD = H.KOD) > 0 AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= SinifMiktar) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= SinifTutar) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (SinifMiktar <> 0 OR SinifTutar <> 0)))) " +
+                              "OR ((SELECT COUNT(STOKKODU  ) FROM HOPI_STOK    WHERE KOD = H.KOD) = 0 AND (SELECT COUNT(ANAGRUP   ) FROM HOPI_ANAGRUP WHERE KOD = H.KOD) = 0 AND (SELECT COUNT(SINIFKODU ) FROM HOPI_SINIF   WHERE KOD = H.KOD) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= AdisyonTutar) " +
                               "ORDER BY HOPI_KAT DESC, INDIRIM_ORANI DESC, HOPI_KAZAN_ORANI DESC, HOPI_KAZAN_PARA DESC";
 
             cmd.Parameters.AddWithValue("@MASANO", masaNoX);
@@ -145,7 +151,7 @@ namespace Winsell.Hopi
                                 "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
                 return;
             }
-            
+
 
             DataRow[] arrDR = dtKampanyalar.Select("Sec = 1");
             if (dgvKampanyalar.Rows.Count == 0 || arrDR.Length > 0)
@@ -224,17 +230,6 @@ namespace Winsell.Hopi
         private void tsbKapat_Click(object sender, EventArgs e)
         {
             this.Close();
-        }
-
-        private void btnSeparator_Click(object sender, EventArgs e)
-        {
-            txtParacikKusurat.Focus();
-            txtParacikKusurat.Clear();
-        }
-
-        private void txtParacik_Enter(object sender, EventArgs e)
-        {
-            txtFocusedTextBox = ((TextBox)sender);
         }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
-using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Winsell.Hopi.fProject;
 
 namespace Winsell.Hopi
 {
@@ -114,6 +112,18 @@ namespace Winsell.Hopi
             UTF8Encoding encoding = new UTF8Encoding();
             String constructedString = encoding.GetString(characters);
             return (constructedString);
+        }
+
+        public static void SaveToFile(string strFolderName, string strFileName, object oRequest)
+        {
+            string BeyanXML = clsHopi.SerializeObject(oRequest).Remove(0, 1);
+
+            string strFilePath = clsGenel.getExePath() + @"\Send\"+ strFolderName + @"\" + DateTime.Now.ToString("yyyy-MM-dd");
+            clsGenel.directoryControl(strFilePath);
+            StreamWriter SW = new StreamWriter(strFilePath + @"\" + strFileName + ".xml");
+            SW.Write(BeyanXML);
+            SW.Close();
+            SW.Dispose();
         }
     }
 

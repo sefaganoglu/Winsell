@@ -61,6 +61,7 @@ namespace Winsell.Hopi.fProject
             butonMasa.Tag = masa.tutar;
             butonMasa.Text = "Masa No: " + masa.masaNoStr.TOSTRING() + Environment.NewLine + "Tutar: " + masa.tutar.ToString("N2");
             butonMasa.AccessibleName = masa.masaNoStr.TOSTRING();
+            butonMasa.AccessibleDefaultActionDescription = masa.yetki;
             butonMasa.Width = masa.width;
             butonMasa.Height = masa.height;
             butonMasa.Cursor = System.Windows.Forms.Cursors.Hand;
@@ -111,7 +112,7 @@ namespace Winsell.Hopi.fProject
             if (cmd.ExecuteScalar().TOINT() == 1)
             {
                 cmd.Parameters.Clear();
-                cmd.CommandText = "SELECT DISTINCT RC.CEKNO, SUM((ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC WHERE MASANO = @MASANO AND KOD = 'B' GROUP BY RC.CEKNO";
+                cmd.CommandText = "SELECT DISTINCT RC.CEKNO, SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC WHERE MASANO = @MASANO AND KOD = 'B' GROUP BY RC.CEKNO";
                 cmd.Parameters.AddWithValue("@MASANO", masaNo);
                 SqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
@@ -250,50 +251,62 @@ namespace Winsell.Hopi.fProject
             SqlCommand cmd = cnn.CreateCommand();
             cmd.Transaction = cnn.BeginTransaction();
 
-            cmd.CommandText = "DELETE FROM HOPI";
-            cmd.ExecuteNonQuery();
-
             try
             {
-                DataTable dtHopi = new DataTable();
+                DataTable dtHopi;
 
                 SqlConnection cnnKampanya = clsGenel.createDBConnectionKampanya();
                 SqlCommand cmdKampanya = cnnKampanya.CreateCommand();
 
-                cmdKampanya.CommandText = "SELECT * FROM HOPI AS H WHERE (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0";
-                cmdKampanya.Parameters.AddWithValue("@SIRKET_KODU", magazaKodu);
-                SqlDataAdapter sdaKampanya = new SqlDataAdapter(cmdKampanya);
-                sdaKampanya.Fill(dtHopi);
-                sdaKampanya.Dispose();
+                List<string> lstTablolar = new List<string>();
+                lstTablolar.Add("HOPI");
+                lstTablolar.Add("HOPI_STOK");
+                lstTablolar.Add("HOPI_ANAGRUP");
+                lstTablolar.Add("HOPI_SINIF");
 
-                cmdKampanya.Dispose();
-                cnnKampanya.Close();
-
-                string strHopiAlan = "";
-                string strHopiParametre = "";
-
-                foreach (DataColumn DC in dtHopi.Columns)
+                foreach (string strTablo in lstTablolar)
                 {
-                    if (DC.ColumnName != "ID")
-                    {
-                        strHopiAlan += !string.IsNullOrEmpty(strHopiAlan) ? ", " : "";
-                        strHopiParametre += !string.IsNullOrEmpty(strHopiParametre) ? ", " : "";
-                        strHopiAlan += DC.ColumnName;
-                        strHopiParametre += "@" + DC.ColumnName;
-                    }
-                }
+                    dtHopi = new DataTable();
 
-                cmd.CommandText = "INSERT INTO HOPI (" + strHopiAlan + ") " +
-                                  "VALUES (" + strHopiParametre + ")";
-                foreach (DataRow DR in dtHopi.Rows)
-                {
+                    cmd.CommandText = "DELETE FROM " + strTablo;
+                    cmd.ExecuteNonQuery();
+
+                    cmdKampanya.CommandText = "SELECT * FROM " + strTablo + " AS H WHERE (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0";
+                    cmdKampanya.Parameters.AddWithValue("@SIRKET_KODU", magazaKodu);
+                    SqlDataAdapter sdaKampanya = new SqlDataAdapter(cmdKampanya);
+                    sdaKampanya.Fill(dtHopi);
+                    sdaKampanya.Dispose();
+
+                    cmdKampanya.Dispose();
+                    cnnKampanya.Close();
+
+                    string strHopiAlan = "";
+                    string strHopiParametre = "";
+
                     foreach (DataColumn DC in dtHopi.Columns)
                     {
-                        cmd.Parameters.AddWithValue("@" + DC.ColumnName, DR[DC.ColumnName]);
+                        if (DC.ColumnName != "ID" && DC.ColumnName != "SIRANO")
+                        {
+                            strHopiAlan += !string.IsNullOrEmpty(strHopiAlan) ? ", " : "";
+                            strHopiParametre += !string.IsNullOrEmpty(strHopiParametre) ? ", " : "";
+                            strHopiAlan += DC.ColumnName;
+                            strHopiParametre += "@" + DC.ColumnName;
+                        }
                     }
-                    cmd.ExecuteNonQuery();
-                    cmd.Parameters.Clear();
+
+                    cmd.CommandText = "INSERT INTO " + strTablo + " (" + strHopiAlan + ") " +
+                                      "VALUES (" + strHopiParametre + ")";
+                    foreach (DataRow DR in dtHopi.Rows)
+                    {
+                        foreach (DataColumn DC in dtHopi.Columns)
+                        {
+                            cmd.Parameters.AddWithValue("@" + DC.ColumnName, DR[DC.ColumnName]);
+                        }
+                        cmd.ExecuteNonQuery();
+                        cmd.Parameters.Clear();
+                    }
                 }
+
 
                 cmd.Transaction.Commit();
 

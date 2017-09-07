@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle19 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle20 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle21 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmKampanyaListesi));
             this.dgvKampanyalar = new System.Windows.Forms.DataGridView();
             this.colSec = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -52,12 +52,12 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.label1 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.txtParacikKusurat = new System.Windows.Forms.TextBox();
             this.lblAdisyonTutari = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.lblKullanilabilirLimit = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.txtParacik = new System.Windows.Forms.TextBox();
-            this.btnSeparator = new System.Windows.Forms.Button();
             this.btn7 = new System.Windows.Forms.Button();
             this.btnSil = new System.Windows.Forms.Button();
             this.btn8 = new System.Windows.Forms.Button();
@@ -69,18 +69,19 @@
             this.btn5 = new System.Windows.Forms.Button();
             this.btn1 = new System.Windows.Forms.Button();
             this.btn6 = new System.Windows.Forms.Button();
-            this.txtParacikKusurat = new System.Windows.Forms.TextBox();
+            this.panel1 = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvKampanyalar)).BeginInit();
             this.tsMenu.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvKampanyalar
             // 
             this.dgvKampanyalar.AllowUserToAddRows = false;
             this.dgvKampanyalar.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle19.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.dgvKampanyalar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle19;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.LightSteelBlue;
+            this.dgvKampanyalar.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgvKampanyalar.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvKampanyalar.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colSec,
@@ -138,9 +139,9 @@
             // colAdet
             // 
             this.colAdet.DataPropertyName = "ADET";
-            dataGridViewCellStyle20.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle20.Format = "N2";
-            this.colAdet.DefaultCellStyle = dataGridViewCellStyle20;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle5.Format = "N2";
+            this.colAdet.DefaultCellStyle = dataGridViewCellStyle5;
             this.colAdet.HeaderText = "Adet";
             this.colAdet.Name = "colAdet";
             this.colAdet.ReadOnly = true;
@@ -150,9 +151,9 @@
             // colKazancOrani
             // 
             this.colKazancOrani.DataPropertyName = "HOPI_KAZAN_ORANI";
-            dataGridViewCellStyle21.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle21.Format = "N2";
-            this.colKazancOrani.DefaultCellStyle = dataGridViewCellStyle21;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle6.Format = "N2";
+            this.colKazancOrani.DefaultCellStyle = dataGridViewCellStyle6;
             this.colKazancOrani.HeaderText = "Kazanç Oranı";
             this.colKazancOrani.Name = "colKazancOrani";
             this.colKazancOrani.ReadOnly = true;
@@ -273,14 +274,11 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.txtParacikKusurat);
             this.panel2.Controls.Add(this.lblAdisyonTutari);
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.lblKullanilabilirLimit);
             this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.label1);
-            this.panel2.Controls.Add(this.txtParacik);
-            this.panel2.Controls.Add(this.btnSeparator);
             this.panel2.Controls.Add(this.btn7);
             this.panel2.Controls.Add(this.btnSil);
             this.panel2.Controls.Add(this.btn8);
@@ -292,11 +290,20 @@
             this.panel2.Controls.Add(this.btn5);
             this.panel2.Controls.Add(this.btn1);
             this.panel2.Controls.Add(this.btn6);
+            this.panel2.Controls.Add(this.panel1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(463, 54);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(250, 382);
             this.panel2.TabIndex = 36;
+            // 
+            // txtParacikKusurat
+            // 
+            this.txtParacikKusurat.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtParacikKusurat.Location = new System.Drawing.Point(162, 0);
+            this.txtParacikKusurat.Name = "txtParacikKusurat";
+            this.txtParacikKusurat.Size = new System.Drawing.Size(75, 38);
+            this.txtParacikKusurat.TabIndex = 40;
             // 
             // lblAdisyonTutari
             // 
@@ -341,23 +348,11 @@
             // txtParacik
             // 
             this.txtParacik.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
-            this.txtParacik.Location = new System.Drawing.Point(5, 34);
+            this.txtParacik.Location = new System.Drawing.Point(0, 0);
             this.txtParacik.Name = "txtParacik";
             this.txtParacik.Size = new System.Drawing.Size(156, 38);
             this.txtParacik.TabIndex = 1;
             this.txtParacik.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.txtParacik.Enter += new System.EventHandler(this.txtParacik_Enter);
-            // 
-            // btnSeparator
-            // 
-            this.btnSeparator.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnSeparator.Location = new System.Drawing.Point(167, 279);
-            this.btnSeparator.Name = "btnSeparator";
-            this.btnSeparator.Size = new System.Drawing.Size(75, 61);
-            this.btnSeparator.TabIndex = 35;
-            this.btnSeparator.Text = ",";
-            this.btnSeparator.UseVisualStyleBackColor = true;
-            this.btnSeparator.Click += new System.EventHandler(this.btnSeparator_Click);
             // 
             // btn7
             // 
@@ -397,7 +392,7 @@
             this.btn0.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btn0.Location = new System.Drawing.Point(86, 279);
             this.btn0.Name = "btn0";
-            this.btn0.Size = new System.Drawing.Size(75, 61);
+            this.btn0.Size = new System.Drawing.Size(156, 61);
             this.btn0.TabIndex = 33;
             this.btn0.Text = "0";
             this.btn0.UseVisualStyleBackColor = true;
@@ -480,14 +475,15 @@
             this.btn6.UseVisualStyleBackColor = true;
             this.btn6.Click += new System.EventHandler(this.btn7_Click);
             // 
-            // txtParacikKusurat
+            // panel1
             // 
-            this.txtParacikKusurat.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
-            this.txtParacikKusurat.Location = new System.Drawing.Point(167, 34);
-            this.txtParacikKusurat.Name = "txtParacikKusurat";
-            this.txtParacikKusurat.Size = new System.Drawing.Size(75, 38);
-            this.txtParacikKusurat.TabIndex = 40;
-            this.txtParacikKusurat.Enter += new System.EventHandler(this.txtParacik_Enter);
+            this.panel1.Controls.Add(this.txtParacikKusurat);
+            this.panel1.Controls.Add(this.txtParacik);
+            this.panel1.Enabled = false;
+            this.panel1.Location = new System.Drawing.Point(5, 34);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(237, 38);
+            this.panel1.TabIndex = 41;
             // 
             // frmKampanyaListesi
             // 
@@ -512,6 +508,8 @@
             this.tsMenu.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -527,7 +525,6 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Button btnSeparator;
         private System.Windows.Forms.Button btn7;
         private System.Windows.Forms.Button btnSil;
         private System.Windows.Forms.Button btn8;
@@ -557,5 +554,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colMiktar;
         private System.Windows.Forms.DataGridViewTextBoxColumn colFiyatsalSinir;
         private System.Windows.Forms.TextBox txtParacikKusurat;
+        private System.Windows.Forms.Panel panel1;
     }
 }

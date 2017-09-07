@@ -31,8 +31,9 @@ namespace Winsell.Hopi
             pnlIslemler.AccessibleDescription = ((Button)sender).AccessibleDescription;
             pnlIslemler.AccessibleName = ((Button)sender).AccessibleName;
             lblMasaNo.Text = ((Button)sender).AccessibleName;
-            tsbHesapBol.Enabled = ((Button)sender).BackColor != Color.Silver;
-            tsbOdemeAl.Enabled = tsbHesapBol.Enabled;
+            tsbHesapBol.Enabled = ((Button)sender).AccessibleDefaultActionDescription.Substring(0, 1) == "1";
+            tsbOdemeAl.Enabled =  ((Button)sender).AccessibleDefaultActionDescription.Substring(1, 1) == "1";
+            tsbHopiIade.Enabled =  ((Button)sender).AccessibleDefaultActionDescription.Substring(2, 1) == "1";
             pnlIslemler.Visible = true;
             urunListesiGetir(pnlIslemler.AccessibleDescription.TOINT());
         }
@@ -43,7 +44,9 @@ namespace Winsell.Hopi
 
             SqlConnection cnn = clsGenel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.STOKADI, RC.MIKTAR_ACK, (ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.KOD = 'B'";
+            cmd.CommandText = "SELECT RC.STOKADI, RC.MIKTAR_ACK, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
+                              "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                              "AS TUTAR FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.KOD = 'B'";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             SqlDataAdapter DA = new SqlDataAdapter(cmd);
             DA.Fill(dtStoklar);
@@ -65,14 +68,18 @@ namespace Winsell.Hopi
 
             SqlConnection cnn = clsGenel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT DISTINCT RC.MASANO, RC.MASANOSTR, (SELECT SUM((ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT))) - ISNULL(ALACAK, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO) AS Tutar, " +
-                              "CASE WHEN (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO) > 0 THEN 0 ELSE 1 END AS Kullanilabilir " +
+            cmd.CommandText = "SELECT DISTINCT RC.MASANO, RC.MASANOSTR, (SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO) - " +
+                              "(ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS FLOAT)) FROM ODEME_TEMP WHERE CEKNO IN (SELECT DISTINCT CEKNO FROM RESCEK WHERE MASANO = RC.MASANO)), CAST(0 AS FLOAT)) / 100) " +
+                              "AS Tutar, " +
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT SUM(MIKTAR) AS Sayi FROM RESCEK WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO AND KOD = 'B' AND LTRIM(RTRIM(ISNULL(GARNITUR_MASTER_STOKKODU, CAST('' AS VARCHAR)))) = '' AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) = 0) <> 1) > 0 THEN 1 ELSE 0 END AS KullanilabilirBolme, " +
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) = 0) > 0 THEN 1 ELSE 0 END AS KullanilabilirOdeme, " +
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) <> 0) > 0 THEN 1 ELSE 0 END AS KullanilabilirIade " +
                               "FROM RESCEK AS RC " +
                               "ORDER BY RC.MASANOSTR";
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                Button btnMasa = clsGenel.masaOlustur(new clsSiniflar.Masa() { masaNo = reader["MASANO"].TOINT(), masaNoStr = reader["MASANOSTR"].TOSTRING(), tutar = reader["Tutar"].TODECIMAL(), color = (reader["Kullanilabilir"].TOINT() == 1 ? Color.Salmon : Color.Silver) });
+                Button btnMasa = clsGenel.masaOlustur(new clsSiniflar.Masa() { masaNo = reader["MASANO"].TOINT(), masaNoStr = reader["MASANOSTR"].TOSTRING(), tutar = reader["Tutar"].TODECIMAL(), color = (reader["KullanilabilirOdeme"].TOINT() == 1 ? Color.Salmon : Color.Silver), yetki = reader["KullanilabilirBolme"].TOSTRING() + reader["KullanilabilirOdeme"].TOSTRING() + reader["KullanilabilirIade"].TOSTRING() });
                 btnMasa.Click += btnMasa_Click;
                 btnMasa.Parent = flpMasalar;
             }
@@ -158,9 +165,9 @@ namespace Winsell.Hopi
                             }
 
                             string strSaticiKodu = "";
-                            //decimal dIskontoTutari = 0;
-                            cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) AS TUTAR, " + //"ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) AS ISKONTOTUTARI, " +
-                                              "STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
+                            cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
+                                              "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                                              "AS TUTAR, STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
                                               "FROM RESCEK AS RC " +
                                               "INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU) " +
                                               "WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO "; // AND SFIY > 0
@@ -181,8 +188,6 @@ namespace Winsell.Hopi
                                 urun.tutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
                                 urun.x = reader["X"].TOINT();
                                 urun.siraNo = reader["SIRANO"].TOINT();
-
-                                //dIskontoTutari += reader["ISKONTOTUTARI"].TODECIMAL();
 
                                 arrUrun.Add(urun);
                             }
@@ -336,14 +341,13 @@ namespace Winsell.Hopi
                                 try
                                 {
                                     decimal dIskontoToplami = 0;
-                                    cmd.CommandText = "UPDATE RESCEK SET ISKONTOTUTARI = ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT)) + @ISKONTOTUTARI, BIRDID = @BIRDID, KAMPANYA_KODU = @KAMPANYA_KODU, HOPI_INDIRIM = @HOPI_INDIRIM WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND X = @X AND STOKKODU = @STOKKODU AND SIRANO = @SIRANO";
+                                    cmd.CommandText = "UPDATE RESCEK SET BIRDID = @BIRDID, KAMPANYA_KODU = @KAMPANYA_KODU, HOPI_INDIRIM = @HOPI_INDIRIM WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND X = @X AND STOKKODU = @STOKKODU AND SIRANO = @SIRANO";
                                     foreach (clsHopi.Urun urun in alisverisBilgisi.urunler)
                                     {
                                         if (urun.kampanyaKodlari.Count > 0)
                                         {
                                             string strUrunKampanyalar = urun.kampanyaKodlari.Aggregate((i, j) => i + ',' + j);
-
-                                            cmd.Parameters.AddWithValue("@ISKONTOTUTARI", urun.indirimTutari);
+                                            
                                             cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
                                             cmd.Parameters.AddWithValue("@KAMPANYA_KODU", strUrunKampanyalar);
                                             cmd.Parameters.AddWithValue("@HOPI_INDIRIM", urun.indirimTutari);
@@ -376,11 +380,10 @@ namespace Winsell.Hopi
                                     //HOPI ODEME KAYDI
                                     if (alisverisBilgisi.kullanilacakParacik != 0)
                                     {
-                                        cmd.CommandText = "INSERT INTO RESCEK (MASANO, TARIH, ISKONTOTUTARI1, CEKNO, KARTKODU, SATICIKODU, KOD, ALACAK, MASANOSTR, KAYNAK, HESAPADI, INDIRIM_CARISI, BIRDID) " +
-                                                          "SELECT @MASANO, @TARIH, @ISKONTOTUTARI1, @CEKNO, KOD, @SATICIKODU, 'A', @ALACAK, @MASANOSTR, @KAYNAK, CAST('' AS VARCHAR), CAST('' AS VARCHAR), @BIRDID  FROM KRDKRT WHERE KOD = @KOD";
+                                        cmd.CommandText = "INSERT INTO RESCEK (MASANO, TARIH, CEKNO, KARTKODU, SATICIKODU, KOD, ALACAK, MASANOSTR, KAYNAK, HESAPADI, INDIRIM_CARISI, BIRDID) " +
+                                                          "SELECT @MASANO, @TARIH, @CEKNO, KOD, @SATICIKODU, 'A', @ALACAK, @MASANOSTR, @KAYNAK, CAST('' AS VARCHAR), CAST('' AS VARCHAR), @BIRDID  FROM KRDKRT WHERE KOD = @KOD";
                                         cmd.Parameters.AddWithValue("@MASANO", masaNo);
                                         cmd.Parameters.AddWithValue("@TARIH", alisverisBilgisi.dateTime.Date);
-                                        cmd.Parameters.AddWithValue("@ISKONTOTUTARI1", (0).TODECIMAL());
                                         cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
                                         cmd.Parameters.AddWithValue("@SATICIKODU", clsGenel.kullaniciKodu);
                                         cmd.Parameters.AddWithValue("@ALACAK", alisverisBilgisi.kullanilacakParacik);
@@ -426,7 +429,7 @@ namespace Winsell.Hopi
 
 
                                     //RESHRY KAYDI
-                                    cmd.CommandText = "SELECT SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Bakiye FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                    cmd.CommandText = "SELECT SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Bakiye FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
                                     cmd.Parameters.AddWithValue("@MASANO", masaNo);
                                     cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
                                     if (cmd.ExecuteScalar().TODECIMAL() <= 0)
@@ -577,7 +580,7 @@ namespace Winsell.Hopi
                         }
 
 
-                        cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) + ISNULL(RC.HOPI_INDIRIM, CAST(0 AS FLOAT)) AS TUTAR, " + //"ISNULL(RC.ISKONTOTUTARI, CAST(0 AS FLOAT)) AS ISKONTOTUTARI, " +
+                        cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) AS TUTAR, " + //+ ISNULL(RC.HOPI_INDIRIM, CAST(0 AS FLOAT))
                                                   "STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
                                                   "FROM RESCEK AS RC " +
                                                   "INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU) " +
@@ -627,7 +630,13 @@ namespace Winsell.Hopi
                                     cmd.ExecuteNonQuery();
                                     cmd.Parameters.Clear();
 
-                                    cmd.CommandText = "UPDATE RESCEK SET ISKONTOTUTARI = ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT)) - ISNULL(HOPI_INDIRIM, CAST(0 AS FLOAT)), BIRDID = 0, KAMPANYA_KODU = '' WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                    cmd.CommandText = "UPDATE RESCEK SET BIRDID = 0, KAMPANYA_KODU = '' WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                    cmd.ExecuteNonQuery();
+                                    cmd.Parameters.Clear();
+
+                                    cmd.CommandText = "UPDATE RESCEK SET HOPI_INDIRIM = 0 WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
                                     cmd.Parameters.AddWithValue("@MASANO", masaNo);
                                     cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
                                     cmd.ExecuteNonQuery();

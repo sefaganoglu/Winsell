@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -79,6 +80,12 @@ namespace Winsell.Hopi
         {
             decimal dReturn = Math.Round(o, 2, MidpointRounding.AwayFromZero);
             return dReturn;
+        }
+
+        public static string TOLOCALDECIMAL(this string str)
+        {
+            string strSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+            return str.Replace(",", strSeparator).Replace(".", strSeparator);
         }
     }
 }
