@@ -75,7 +75,7 @@ namespace Winsell.Hopi
                               "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) = 0) > 0 THEN 1 ELSE 0 END AS KullanilabilirOdeme, " +
                               "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) <> 0) > 0 THEN 1 ELSE 0 END AS KullanilabilirIade " +
                               "FROM RESCEK AS RC " +
-                              "ORDER BY RC.MASANOSTR";
+                              "ORDER BY RC.MASANO";
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -510,8 +510,8 @@ namespace Winsell.Hopi
                 tsbYenile.PerformClick();
                 this.Visible = true;
 
-                //if (!string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()))
-                //    clsGenel.kampanyaGuncelle();
+                if (!string.IsNullOrWhiteSpace(clsGenel.kampanyaServerName.Trim()))
+                    clsGenel.kampanyaGuncelle();
             }
             else
                 this.Close();

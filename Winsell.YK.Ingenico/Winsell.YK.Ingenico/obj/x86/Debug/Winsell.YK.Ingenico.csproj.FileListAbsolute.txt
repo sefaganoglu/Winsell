@@ -1,0 +1,38 @@
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\bin\Debug\Winsell.YK.Ingenico.exe.config
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\bin\Debug\Winsell.YK.Ingenico.exe
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\bin\Debug\Winsell.YK.Ingenico.pdb
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.frmIngenicoPaymentAppForm.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.frmIngenicoPaymentTypeForm.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.frmYazarKasa.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.Properties.Resources.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.csproj.GenerateResource.Cache
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.exe
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\prjKeyYazarKasa\obj\x86\Debug\Winsell.YK.Ingenico.pdb
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\bin\Debug\Winsell.YK.Ingenico.exe.config
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\bin\Debug\Winsell.YK.Ingenico.exe
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\bin\Debug\Winsell.YK.Ingenico.pdb
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmIngenicoPaymentAppForm.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmIngenicoPaymentTypeForm.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmPasswordForm.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmRaporlar.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmYazarKasa.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.Properties.Resources.resources
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csproj.GenerateResource.Cache
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.exe
+C:\Users\Administrator\Desktop\Winsell.YK.Ingenico\prjKeyYazarKasa\prjKeyYazarKasa\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.pdb
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\bin\Debug\Winsell.YK.Ingenico.exe.config
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\bin\Debug\Winsell.YK.Ingenico.exe
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\bin\Debug\Winsell.YK.Ingenico.pdb
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csprojResolveAssemblyReference.cache
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmIngenicoPaymentAppForm.resources
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmIngenicoPaymentTypeForm.resources
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmPasswordForm.resources
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmRaporlar.resources
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.frmYazarKasa.resources
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.Properties.Resources.resources
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csproj.GenerateResource.Cache
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csproj.CoreCompileInputs.cache
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.exe
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.pdb

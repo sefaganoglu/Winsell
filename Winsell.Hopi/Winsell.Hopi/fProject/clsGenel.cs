@@ -251,12 +251,13 @@ namespace Winsell.Hopi.fProject
             SqlCommand cmd = cnn.CreateCommand();
             cmd.Transaction = cnn.BeginTransaction();
 
+            SqlConnection cnnKampanya = clsGenel.createDBConnectionKampanya();
+            SqlCommand cmdKampanya = cnnKampanya.CreateCommand();
+
             try
             {
                 DataTable dtHopi;
 
-                SqlConnection cnnKampanya = clsGenel.createDBConnectionKampanya();
-                SqlCommand cmdKampanya = cnnKampanya.CreateCommand();
 
                 List<string> lstTablolar = new List<string>();
                 lstTablolar.Add("HOPI");
@@ -276,9 +277,8 @@ namespace Winsell.Hopi.fProject
                     SqlDataAdapter sdaKampanya = new SqlDataAdapter(cmdKampanya);
                     sdaKampanya.Fill(dtHopi);
                     sdaKampanya.Dispose();
+                    cmdKampanya.Parameters.Clear();
 
-                    cmdKampanya.Dispose();
-                    cnnKampanya.Close();
 
                     string strHopiAlan = "";
                     string strHopiParametre = "";
@@ -307,7 +307,6 @@ namespace Winsell.Hopi.fProject
                     }
                 }
 
-
                 cmd.Transaction.Commit();
 
                 blnReturn = true;
@@ -318,6 +317,8 @@ namespace Winsell.Hopi.fProject
                 MessageBox.Show("Kampanyalar güncellenirken bir hata ile karşılaşıldı." + Environment.NewLine + ex.Message,
                                 "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
             }
+            cmdKampanya.Dispose();
+            cnnKampanya.Close();
             cmd.Dispose();
             cnn.Close();
 
