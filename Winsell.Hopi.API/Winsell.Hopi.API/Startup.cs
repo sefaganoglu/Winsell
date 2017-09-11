@@ -32,6 +32,8 @@ namespace Winsell.Hopi.API
             Genel.connectionString = Configuration["ConnectionString"].ToString();
             services.AddMvc();
 
+            Genel.hopiWSDL = Configuration["HopiWSDL"].ToString();
+
             Genel.hopiIndirimOdemeKodu = Genel.odemeTipiGetir(Genel.OdemeTipi.HopiIndirim);
             Genel.hopiOdemeKodu = Genel.odemeTipiGetir(Genel.OdemeTipi.HopiTahsilat);
             Genel.magazaKodu = Genel.parametreOku("MAGAZA_KODU", "").TOSTRING();

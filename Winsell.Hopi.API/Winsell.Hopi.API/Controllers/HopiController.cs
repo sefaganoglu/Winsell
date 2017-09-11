@@ -513,5 +513,11 @@ namespace Winsell.Hopi.API.Controllers
 
             return drReturn;
         }
+
+        [HttpGet("kimlikKontrol")]
+        public string kimlikKontrol(string storeCode, string token)
+        {
+            return HopiWSProvider.GetKullaniciBilgi(storeCode, token);
+        }
     }
 }

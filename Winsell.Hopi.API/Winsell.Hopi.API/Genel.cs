@@ -14,6 +14,7 @@ namespace Winsell.Hopi.API
             HopiIndirim = 1
         }
 
+        public static string hopiWSDL = "";
         public static string connectionString = "";
         
         public static string kampanyaServerName = "";
