@@ -35,3 +35,4 @@ D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x8
 D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csproj.CoreCompileInputs.cache
 D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.exe
 D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.pdb
+D:\Projects\visual studio\Winsell\Winsell.YK.Ingenico\Winsell.YK.Ingenico\obj\x86\Debug\Winsell.YK.Ingenico.csprojResolveAssemblyReference.cache

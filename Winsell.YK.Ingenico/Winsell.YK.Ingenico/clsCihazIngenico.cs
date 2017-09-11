@@ -763,15 +763,23 @@ namespace Winsell.YK.Ingenico
                 }
 
                 if (strOdemeTipi == "01")
+                {
                     stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_CASH_TL;
+                    stPaymentRequest[0].paymentName = "NAKİT";
+                }
                 else if (strOdemeTipi == "08")
+                {
                     stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_MOBILE;
+                    stPaymentRequest[0].paymentName = "MOBİL";
+                }
                 else if (strOdemeTipi == "11")
+                {
                     stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_PUAN;
+                    stPaymentRequest[0].paymentName = "PUAN";
+                }
                 stPaymentRequest[0].subtypeOfPayment = 0;
                 stPaymentRequest[0].payAmount = (dblAmount * 100).TOUINT32();
                 stPaymentRequest[0].payAmountCurrencyCode = currencyOfPayment;
-                stPaymentRequest[0].paymentName = "INGENICO";
 
                 GetPayment(stPaymentRequest, 1);
             }
