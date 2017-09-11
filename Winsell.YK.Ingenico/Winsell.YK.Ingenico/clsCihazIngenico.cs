@@ -442,13 +442,7 @@ namespace Winsell.YK.Ingenico
 
             string display = "";
 
-            UInt64 activeFlags = 0;
-
-            retcode = IngenicoGMPSmartDLL.FiscalPrinter_OptionFlags(ref activeFlags, (Defines.GMP3_OPTION_ECHO_PRINTER | Defines.GMP3_OPTION_ECHO_ITEM_DETAILS | Defines.GMP3_OPTION_ECHO_PAYMENT_DETAILS), 0x00000000, Defines.TIMEOUT_DEFAULT);
-            if (retcode != Defines.TRAN_RESULT_OK)
-                HandleErrorCode(retcode);
-
-            retcode = Json_GMPSmartDLL.FiscalPrinter_Payment(ref stPaymentRequest[0], ref m_stTicket, Defines.TIMEOUT_CARD_TRANSACTIONS);
+            retcode = Json_GMPSmartDLL.FiscalPrinter_Payment(ref stPaymentRequest[0], ref m_stTicket, 30000);
 
             for (int i = 0; i < m_stTicket.stPayment.Length; i++)
             {
@@ -456,10 +450,10 @@ namespace Winsell.YK.Ingenico
                 {
                     if (m_stTicket.stPayment[i].stBankPayment.bankName != "")
                     {
-                        TransactionInfo(m_stTicket.stPayment[i].stBankPayment.bankName + Environment.NewLine +
-                                        "Banking Error : " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.ErrorCode + " " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.ErrorMsg + Environment.NewLine +
-                                        "Application Error : " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.AppErrorCode + " " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.AppErrorMsg + Environment.NewLine +
-                                        "----------------------------------------------");
+                        display += m_stTicket.stPayment[i].stBankPayment.bankName + Environment.NewLine;
+                        display += "Banking Error : " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.ErrorCode + " " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.ErrorMsg + Environment.NewLine;
+                        display += "Application Error : " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.AppErrorCode + " " + m_stTicket.stPayment[i].stBankPayment.stPaymentErrMessage.AppErrorMsg + Environment.NewLine;
+                        display += "----------------------------------------------" + Environment.NewLine;
                     }
                 }
             }
@@ -470,31 +464,34 @@ namespace Winsell.YK.Ingenico
             {
                 case Defines.TRAN_RESULT_OK:
 
+                    if (stPaymentRequest[0].numberOfinstallments != 0)
+                        display += String.Format("TAKSIT SAYISI : {0}", stPaymentRequest[0].numberOfinstallments) + Environment.NewLine;
+
                     if (m_stTicket.KasaAvansAmount != 0)
                     {
-                        display += String.Format("KASA AVANS TOTAL: {0}", formatAmount(m_stTicket.KasaAvansAmount, ECurrency.CURRENCY_TL));
+                        display += String.Format("KASA AVANS TOTAL: {0}", formatAmount(m_stTicket.KasaAvansAmount, ECurrency.CURRENCY_TL)) + Environment.NewLine;
                         TicketAmount = m_stTicket.KasaAvansAmount;
                     }
                     else if (m_stTicket.invoiceAmount != 0)
                     {
-                        display += String.Format("INVOICE TOTAL : {0}", formatAmount(m_stTicket.invoiceAmount, ECurrency.CURRENCY_TL));
+                        display += String.Format("INVOICE TOTAL : {0}", formatAmount(m_stTicket.invoiceAmount, ECurrency.CURRENCY_TL)) + Environment.NewLine;
                         TicketAmount = m_stTicket.invoiceAmount;
                     }
                     else
-                        display += String.Format("TOTAL : {0}", formatAmount(m_stTicket.TotalReceiptAmount, ECurrency.CURRENCY_TL));
+                        display += String.Format("TOTAL : {0}", formatAmount(m_stTicket.TotalReceiptAmount, ECurrency.CURRENCY_TL)) + Environment.NewLine;
 
                     if (m_stTicket.CashBackAmount != 0)
-                        display += String.Format(Environment.NewLine + "CASHBACK : {0}", formatAmount(m_stTicket.CashBackAmount, ECurrency.CURRENCY_TL));
+                        display += String.Format(Environment.NewLine + "CASHBACK : {0}", formatAmount(m_stTicket.CashBackAmount, ECurrency.CURRENCY_TL)) + Environment.NewLine;
                     else
-                        display += String.Format(Environment.NewLine + "REMAIN : {0}", formatAmount(TicketAmount - m_stTicket.TotalReceiptPayment, ECurrency.CURRENCY_TL));
+                        display += String.Format(Environment.NewLine + "REMAIN : {0}", formatAmount(TicketAmount - m_stTicket.TotalReceiptPayment, ECurrency.CURRENCY_TL)) + Environment.NewLine;
 
                     if ((stPaymentRequest[0].typeOfPayment == (uint)EPaymentTypes.PAYMENT_BANK_CARD) || (stPaymentRequest[0].typeOfPayment == (uint)EPaymentTypes.PAYMENT_MOBILE))
                     {
-                        display += String.Format(Environment.NewLine + "{0}", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.bankName);
-                        display += String.Format(Environment.NewLine + "ONAY KODU : {0}", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.authorizeCode);
+                        display += String.Format(Environment.NewLine + "{0}", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.bankName) + Environment.NewLine;
+                        display += String.Format(Environment.NewLine + "ONAY KODU : {0}", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.authorizeCode) + Environment.NewLine;
                         display += String.Format(Environment.NewLine + "{0} / {1}", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.stCard.pan
                                                                                     , m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.stCard.expireDate
-                                                                                    );
+                                                                                    ) + Environment.NewLine;
                     }
 
                     if (m_stTicket.TotalReceiptPayment >= TicketAmount)
@@ -523,7 +520,7 @@ namespace Winsell.YK.Ingenico
 
                         retcode = Json_GMPSmartDLL.FiscalPrinter_PrintUserMessage(ref stUserMessage, 2, ref m_stTicket, Defines.TIMEOUT_DEFAULT);
 
-                        retcode = IngenicoGMPSmartDLL.FiscalPrinter_PrintMF(Defines.TIMEOUT_DEFAULT);
+                        retcode = IngenicoGMPSmartDLL.FiscalPrinter_PrintMF(Defines.TIMEOUT_CARD_TRANSACTIONS);
                         if (retcode != Defines.TRAN_RESULT_OK && retcode != Defines.APP_ERR_ALREADY_DONE)
                             break;
 
@@ -547,10 +544,10 @@ namespace Winsell.YK.Ingenico
                         {
                             display += String.Format(Environment.NewLine + "{0}({1})", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.stPaymentErrMessage.ErrorMsg
                                                                                 , m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.stPaymentErrMessage.ErrorCode
-                                                                                );
+                                                                                ) + Environment.NewLine;
                             display += String.Format(Environment.NewLine + "{0}({1})", m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.stPaymentErrMessage.AppErrorMsg
                                                                                 , m_stTicket.stPayment[m_stTicket.totalNumberOfPayments - 1].stBankPayment.stPaymentErrMessage.AppErrorCode
-                                                                                );
+                                                                                ) + Environment.NewLine;
                         }
                     }
 
@@ -686,7 +683,7 @@ namespace Winsell.YK.Ingenico
             ST_TICKET m_stTicket = new ST_TICKET();
 
             int changedAmount = Math.Truncate(dblIskontoTutari * 100).TOINTEGER();
-            
+
             retcode = Json_GMPSmartDLL.FiscalPrinter_Plus_Ex(changedAmount, strAciklama, ref m_stTicket, intSatirIndex, Defines.TIMEOUT_DEFAULT);
 
             if (retcode != 0)
@@ -719,7 +716,7 @@ namespace Winsell.YK.Ingenico
                                           , formatAmount((uint)m_stTicket.SaleInfo[intSatirIndex].ItemPrice, (ECurrency)m_stTicket.SaleInfo[intSatirIndex].ItemCurrencyType)
                                          ));
             }
-            
+
             HandleErrorCode(retcode);
         }
 
@@ -752,7 +749,7 @@ namespace Winsell.YK.Ingenico
 
         public static void prcdOdemeYap(string strOdemeTipi, double dblAmount, string strTaksitSayisi = "")
         {
-            if (strOdemeTipi == "01")
+            if (strOdemeTipi == "01" || strOdemeTipi == "08" || strOdemeTipi == "11")
             {
                 UInt16 currencyOfPayment = 0;
 
@@ -765,10 +762,16 @@ namespace Winsell.YK.Ingenico
                     stPaymentRequest[i] = new ST_PAYMENT_REQUEST();
                 }
 
-                stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_CASH_TL;
+                if (strOdemeTipi == "01")
+                    stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_CASH_TL;
+                else if (strOdemeTipi == "08")
+                    stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_MOBILE;
+                else if (strOdemeTipi == "11")
+                    stPaymentRequest[0].typeOfPayment = (uint)EPaymentTypes.PAYMENT_PUAN;
                 stPaymentRequest[0].subtypeOfPayment = 0;
                 stPaymentRequest[0].payAmount = (dblAmount * 100).TOUINT32();
                 stPaymentRequest[0].payAmountCurrencyCode = currencyOfPayment;
+                stPaymentRequest[0].paymentName = "INGENICO";
 
                 GetPayment(stPaymentRequest, 1);
             }
