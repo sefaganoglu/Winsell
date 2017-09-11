@@ -9,10 +9,16 @@ namespace Winsell.Hopi.API.Models
     {
         public string kodu { get; set; }
         public string aciklama { get; set; }
-        public decimal kazanc { get; set; }
-        public decimal indirim { get; set; }
-        public string dikkat { get; set; }
-        public int kullanilabilir { get; set; }
-        public decimal indirimOrani { get; set; }
+        public int adet { get; set; }
+        public int kazancOrani { get; set; }
+        public decimal kazancParacik { get; set; }
+        public decimal indirimKat { get; set; }
+        public int indirimOrani { get; set; }
+        public decimal maksimumKatParacik { get; set; }
+        public decimal maksimumKazanc { get; set; }
+        public decimal miktar { get; set; }
+        public decimal fiyatsalSinir { get; set; }
+        public Dictionary<int, decimal> indirimler { get; set; }
+        public Dictionary<int, decimal> tutarlar { get; set; }
     }
 }

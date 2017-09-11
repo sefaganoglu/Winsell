@@ -9,6 +9,7 @@ namespace Winsell.Hopi.API.Models
     {
         public int no { get; set; }
         public decimal tutar { get; set; }
+        public byte hopi { get; set; }
 
         public List<Stok> stoklar { get; set; }
     }

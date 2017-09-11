@@ -8,6 +8,7 @@ using Winsell.Hopi.API.Models;
 using System.Configuration;
 using System.Drawing;
 using Winsell.Hopi.Data;
+using System.Data;
 
 namespace Winsell.Hopi.API.Controllers
 {
@@ -21,10 +22,14 @@ namespace Winsell.Hopi.API.Controllers
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT DISTINCT RC.MASANO, RC.MASANOSTR, (SELECT SUM((ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI, CAST(0 AS FLOAT))) - ISNULL(ALACAK, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO) AS Tutar, " +
-                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND LTRIM(RTRIM(ISNULL(BIRDID, CAST(0 AS INT)))) > 0) > 0 THEN 0 ELSE 1 END AS Kullanilabilir " +
+            cmd.CommandText = "SELECT DISTINCT RC.MASANO, RC.MASANOSTR, (SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO) - " +
+                              "(ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS FLOAT)) FROM ODEME_TEMP WHERE CEKNO IN (SELECT DISTINCT CEKNO FROM RESCEK WHERE MASANO = RC.MASANO)), CAST(0 AS FLOAT)) / 100) " +
+                              "AS Tutar, " +
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT SUM(MIKTAR) AS Sayi FROM RESCEK WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO AND KOD = 'B' AND LTRIM(RTRIM(ISNULL(GARNITUR_MASTER_STOKKODU, CAST('' AS VARCHAR)))) = '' AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) = 0) <> 1) > 0 THEN 1 ELSE 0 END AS KullanilabilirBolme, " +
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) = 0) > 0 THEN 1 ELSE 0 END AS KullanilabilirOdeme, " +
+                              "CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK AS RC1 WHERE MASANO = RC.MASANO AND (SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = RC1.MASANO AND CEKNO = RC1.CEKNO) <> 0) > 0 THEN 1 ELSE 0 END AS KullanilabilirIade " +
                               "FROM RESCEK AS RC " +
-                              "ORDER BY RC.MASANOSTR";
+                              "ORDER BY RC.MASANO";
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -33,7 +38,8 @@ namespace Winsell.Hopi.API.Controllers
                     no = reader["MASANO"].TOINT(),
                     noStr = reader["MASANOSTR"].TOSTRING(),
                     tutar = reader["Tutar"].TODECIMAL(),
-                    color = (reader["Kullanilabilir"].TOINT() == 1 ? Color.Salmon : Color.Silver),
+                    yetki = reader["KullanilabilirBolme"].TOSTRING() + reader["KullanilabilirOdeme"].TOSTRING() + reader["KullanilabilirIade"].TOSTRING(),
+                    color = (reader["KullanilabilirOdeme"].TOINT() == 1 ? Color.Salmon : Color.Silver),
                     height = 100,
                     width = 100
                 };
@@ -54,7 +60,9 @@ namespace Winsell.Hopi.API.Controllers
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.STOKKODU, RC.STOKADI, RC.MIKTAR, RC.MIKTAR_ACK, RC.X, (ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.KOD = 'B'";
+            cmd.CommandText = "SELECT RC.X, RC.STOKKODU, RC.STOKADI, RC.MIKTAR, RC.MIKTAR_ACK, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
+                              "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                              "AS TUTAR FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.KOD = 'B'";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -86,7 +94,9 @@ namespace Winsell.Hopi.API.Controllers
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.STOKKODU, RC.STOKADI, RC.MIKTAR, RC.MIKTAR_ACK, RC.X, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT)) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO AND RC.KOD = 'B'";
+            cmd.CommandText = "SELECT RC.X, RC.STOKKODU, RC.STOKADI, MIKTAR_ACK, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
+                              "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                              "AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO AND RC.KOD = 'B'";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             cmd.Parameters.AddWithValue("@CEKNO", adisyonNo);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -119,7 +129,9 @@ namespace Winsell.Hopi.API.Controllers
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.X, RC.STOKKODU, RC.STOKADI, RC.MIKTAR, (ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) + (SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI1, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KOD = RC.KOD AND X = RC.X) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO AND RC.KOD = 'B' AND LTRIM(RTRIM(ISNULL(RC.GARNITUR_MASTER_STOKKODU, CAST('' AS VARCHAR)))) = ''";
+            cmd.CommandText = "SELECT RC.X, RC.STOKKODU, RC.STOKADI, RC.MIKTAR, RC.MIKTAR_ACK, (SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KOD = RC.KOD AND X = RC.X) - " +
+                              "ROUND((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS FLOAT))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KOD = RC.KOD AND X = RC.X) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                              "AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO AND RC.KOD = 'B' AND LTRIM(RTRIM(ISNULL(RC.GARNITUR_MASTER_STOKKODU, CAST('' AS VARCHAR)))) = ''";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             cmd.Parameters.AddWithValue("@CEKNO", adisyonNo);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -144,35 +156,7 @@ namespace Winsell.Hopi.API.Controllers
 
             return listStok;
         }
-
-        [HttpGet("parametreDegeri")]
-        public List<Parametre> GetParametreDegeri(List<ParametreRequest> parametreListesi)
-        {
-            List<Parametre> listParametre = new List<Parametre>();
-
-            SqlConnection cnn = Genel.createDBConnection();
-            SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT TOP 1 * FROM RESPRM";
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                foreach (ParametreRequest prItem in parametreListesi)
-                {
-                    Parametre prSend = new Parametre()
-                    {
-                        adi = prItem.adi,
-                        degeri = reader[prItem.adi].ISNULL(prItem.varsayilanDegeri)
-                    };
-                    listParametre.Add(prSend);
-                }
-            }
-            reader.Close();
-            cmd.Dispose();
-            cnn.Close();
-
-            return listParametre;
-        }
-
+        
         [HttpGet("masadakiAdisyonlar")]
         public List<Adisyon> GetMasadakiAdisyonlar(int masaNo)
         {
@@ -180,7 +164,9 @@ namespace Winsell.Hopi.API.Controllers
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT RC.CEKNO, SUM((ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ISKONTOTUTARI1, CAST(0 AS FLOAT))) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC WHERE RC.MASANO = @MASANO GROUP BY RC.CEKNO";
+            cmd.CommandText = "SELECT RC.CEKNO, SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) - " +
+                              "(ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS FLOAT)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) / 100) " +
+                              "AS Tutar, CASE WHEN (SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0) = 0 THEN CAST(0 AS INT) ELSE CAST(1 AS INT) END AS Hopi_Var FROM RESCEK AS RC WHERE RC.MASANO = @MASANO GROUP BY RC.MASANO, RC.CEKNO";
             cmd.Parameters.AddWithValue("@MASANO", masaNo);
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -189,6 +175,7 @@ namespace Winsell.Hopi.API.Controllers
                 {
                     no = reader["CEKNO"].TOINT(),
                     tutar = reader["Tutar"].TODECIMAL(),
+                    hopi = reader["Hopi_Var"].TOBYTE(),
                     stoklar = GetAdisyondakiStoklar(masaNo, reader["CEKNO"].TOINT())
                 };
 
@@ -207,19 +194,6 @@ namespace Winsell.Hopi.API.Controllers
             DurumResponse hesapBolmeResponse = new DurumResponse();
 
             hesapBolmeResponse.basarili = false;
-
-            //using (HopiContext context = new HopiContext())
-            //{
-            //    var result = context.RESCEKS.Where(x => x.CEKNO == 1).ToList();
-
-            //    context.RESCEKS.Take(5); 
-
-            //    for (int i = 0; i < result.Count; i++)
-            //    {
-            //        result[i].CEKNO = 
-            //    }
-            //}
-
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
@@ -240,6 +214,7 @@ namespace Winsell.Hopi.API.Controllers
                     }
                     else
                     {
+
                         cmd.CommandText = "INSERT INTO RESCEK (STOKKODU, AFIY, SFIY, MIKTAR, KDV, MASANO, TARIH, ISKONTOORANI, ISKONTOTUTARI1, ISKONTOTUTARI, IPTMIKTAR, IPTTUTAR, CEKNO, STOKADI, KARTKODU, SATICIKODU, YAZNO, " +
                                           "KOD, YAZICI, YAZSIRA, ALACAK, FATURANO, HESAPNO, ADISYON_TIPI, CHSMAS_SIRANO, HESAPADI, R_A, KISI_SAYISI, SAAT, MIKTAR_ACK, PORSIYON_MIK, ADET, KURYE_KODU, STOKADI_D1, STOKADI_D2, " +
                                           "DVZ_KODU, DVZ_TUTARI, SIRKET_KODU, ONCELIK, SANDELYE, CEK_YAZDIR_NO, GARNITUR_MASTER_STOKKODU, X, KISMI_ODEME_ISARET, MASANOSTR, GITTI, BARKOD, TIP, GUN_SIP_NO, ZAYI_SEBEBI, " +
@@ -248,7 +223,7 @@ namespace Winsell.Hopi.API.Controllers
 
                                           "SELECT STOKKODU, AFIY, SFIY, @MIKTAR, KDV, MASANO, TARIH, ISKONTOORANI, ISKONTOTUTARI1, ISKONTOTUTARI, IPTMIKTAR, IPTTUTAR, ISNULL((SELECT TOP 1 ADISYONNO FROM SIRANO), CAST(0 AS INT)) + 1 AS CEKNO, STOKADI, KARTKODU, SATICIKODU, YAZNO, " +
                                           "KOD, YAZICI, YAZSIRA, ALACAK, FATURANO, HESAPNO, ADISYON_TIPI, CHSMAS_SIRANO, HESAPADI, R_A, KISI_SAYISI, SAAT, CAST(CONVERT(Decimal(8,0), @MIKTAR_ACK) AS VARCHAR) + '*' + CAST(CONVERT(Decimal(8,0), PORSIYON_MIK) AS VARCHAR) AS MIKTAR_ACK, PORSIYON_MIK, @ADET, KURYE_KODU, STOKADI_D1, STOKADI_D2, " +
-                                          "DVZ_KODU, DVZ_TUTARI, SIRKET_KODU, ONCELIK, SANDELYE, CEK_YAZDIR_NO, GARNITUR_MASTER_STOKKODU, X + (SELECT COUNT(DISTINCT X) + 1 FROM RESCEK WHERE X > RC.X), KISMI_ODEME_ISARET, MASANOSTR, GITTI, BARKOD, TIP, GUN_SIP_NO, ZAYI_SEBEBI, " +
+                                          "DVZ_KODU, DVZ_TUTARI, SIRKET_KODU, ONCELIK, SANDELYE, CEK_YAZDIR_NO, GARNITUR_MASTER_STOKKODU, X + (SELECT COUNT(DISTINCT X) + 1 FROM RESCEK WHERE X > RC.X), KISMI_ODEME_ISARET, MASANOSTR, GITTI, BARKOD, TIP, GUN_SIP_NO, ZAYI_SEBEBI, " + //ISNULL((SELECT MAX(SIRANO) FROM RESCEK), CAST(0 AS INT)) + 1 AS X
                                           "SATIS_TURU, SIPARISNO, ORJ_FIYAT, SATICIKODU1, INDIRIM_CARISI, KAYNAK, KAYNAK_ZAMANI, DVZ_KUR, DVZ_TUTARI_ALINACAK, ODENMEZ_KOD, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_KOD, " +
                                           "ODENMEZ_DETAY_ACIKLAMA, YSEPETI_MessageId, WINDOWS_USER_NAME, HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, ALINDI, MASTER_CEKNO, TERAZI_USER, TERAZI_ID, ILK_FIYAT " +
                                           "FROM RESCEK AS RC WHERE MASANO = @MASANO AND X = @X AND KOD = 'B'";
@@ -293,64 +268,44 @@ namespace Winsell.Hopi.API.Controllers
         }
 
         [HttpGet("kampanyalar")]
-        public List<Kampanya> GetKampanyalar(KampanyaRequest kampanyaRequest)
+        public List<Kampanya> GetKampanyalar(int masaNo, int adisyonNo)
         {
             List<Kampanya> listKampanya = new List<Kampanya>();
 
             SqlConnection cnn = Genel.createDBConnection();
             SqlCommand cmd = cnn.CreateCommand();
-            cmd.CommandText = "SELECT KOD, ACIKLAMA, CASE WHEN Kazanc > MAX_KAZAN_PARA AND MAX_KAZAN_PARA <> CAST(0 AS FLOAT) THEN MAX_KAZAN_PARA ELSE Kazanc END AS Kazanc, Indirim, (CASE WHEN Tutar > 0 THEN Indirim / Tutar * 100 ELSE CAST(0 AS FLOAT) END) IndirimOrani, " +
-                              "CASE WHEN IndirimOdeme > Tutar THEN CAST(0 AS INT) ELSE CAST(1 AS INT) END AS Kullanilabilir, " +
-                              "CASE WHEN IndirimOdeme > Tutar THEN 'Kullanılan paracık bu kampanyada ödeme tutarının aşılmasına sebep oluyor. Paracık kullanımı maksimum ' + CAST(CONVERT(Decimal(8,2), Tutar / ISNULL(HOPI_KAT, CAST(1 AS FLOAT))) AS VARCHAR) + ' olmalı.' ELSE CAST('' AS VARCHAR) END AS Dikkat " +
-                              "FROM " +
-                              "(SELECT KOD, ACIKLAMA, Tutar, HOPI_KAT, MAX_KAZAN_PARA, " +
-
-                              "(CASE WHEN ISNULL(HOPI_KAZAN_ORANI, CAST(0 AS FLOAT)) > 0 THEN Tutar * ISNULL(HOPI_KAZAN_ORANI, CAST(0 AS FLOAT)) / 100 " +
-                              "WHEN ISNULL(HOPI_KAZAN_PARA, CAST(0 AS FLOAT)) > 0 THEN ISNULL(HOPI_KAZAN_PARA, CAST(0 AS FLOAT)) " +
-                              "ELSE CAST(0 AS FLOAT) END) * (CASE WHEN ISNULL(ADET, CAST(0 AS FLOAT)) > 0 THEN FLOOR(Miktar / ISNULL(ADET, CAST(1 AS FLOAT))) ELSE CAST(1 AS FLOAT) END) AS Kazanc, " +
-
-                              "(CASE WHEN ISNULL(HOPI_KAT, CAST(0 AS FLOAT)) > 0 THEN (CASE WHEN @Paracik > MAX_HOPI_KAT AND MAX_HOPI_KAT <> CAST(0 AS FLOAT) THEN MAX_HOPI_KAT ELSE @Paracik END * ISNULL(HOPI_KAT, CAST(0 AS FLOAT)) - CASE WHEN @Paracik > MAX_HOPI_KAT AND MAX_HOPI_KAT <> CAST(0 AS FLOAT) THEN MAX_HOPI_KAT ELSE @Paracik END) " +
-                              "WHEN ISNULL(INDIRIM_ORANI, CAST(0 AS FLOAT)) > 0 THEN Tutar * ISNULL(INDIRIM_ORANI, CAST(0 AS FLOAT)) / 100 " +
-                              "ELSE CAST(0 AS FLOAT) END) * (CASE WHEN ISNULL(ADET, CAST(0 AS FLOAT)) > 0 THEN FLOOR(Miktar / ISNULL(ADET, CAST(1 AS FLOAT))) ELSE CAST(1 AS FLOAT) END) AS Indirim, " +
-
-                              "(CASE WHEN ISNULL(HOPI_KAT, CAST(0 AS FLOAT)) > 0 THEN (CASE WHEN @Paracik > MAX_HOPI_KAT AND MAX_HOPI_KAT <> CAST(0 AS FLOAT) THEN MAX_HOPI_KAT ELSE @Paracik END * ISNULL(HOPI_KAT, CAST(0 AS FLOAT))) " +
-                              "WHEN ISNULL(INDIRIM_ORANI, CAST(0 AS FLOAT)) > 0 THEN Tutar * ISNULL(INDIRIM_ORANI, CAST(0 AS FLOAT)) / 100 " +
-                              "ELSE CAST(0 AS FLOAT) END) * (CASE WHEN ISNULL(ADET, CAST(0 AS FLOAT)) > 0 THEN FLOOR(Miktar / ISNULL(ADET, CAST(1 AS FLOAT))) ELSE CAST(1 AS FLOAT) END) AS IndirimOdeme " +
-
-                              "FROM " +
-                              "(SELECT H.KOD, H.ACIKLAMA, H.ADET, H.HOPI_KAZAN_ORANI, H.HOPI_KAZAN_PARA, H.HOPI_KAT, H.INDIRIM_ORANI, ISNULL(H.HOPI_KAT_UST_SINIR, CAST(0 AS FLOAT)) AS MAX_HOPI_KAT, ISNULL(H.KAZANILACAK_PARACIK_UST_SINIR, CAST(0 AS FLOAT)) AS MAX_KAZAN_PARA, " +
+            cmd.CommandText = "SELECT DISTINCT CAST(0 AS INT) AS Sec, H.KOD, H.ACIKLAMA, ISNULL(H.FIYATSAL_SINIR, CAST(0 AS INT)) AS FIYATSAL_SINIR, ISNULL(H.ADET, CAST(0 AS INT)) AS ADET, ISNULL(H.HOPI_KAZAN_ORANI, CAST(0 AS INT)) AS HOPI_KAZAN_ORANI, ISNULL(H.HOPI_KAZAN_PARA, CAST(0 AS money)) AS HOPI_KAZAN_PARA, ISNULL(H.HOPI_KAT, CAST(0 AS money)) AS HOPI_KAT, ISNULL(H.INDIRIM_ORANI, CAST(0 AS INT)) AS INDIRIM_ORANI, ISNULL(H.HOPI_KAT_UST_SINIR, CAST(0 AS FLOAT)) AS MAX_HOPI_KAT, ISNULL(H.KAZANILACAK_PARACIK_UST_SINIR, CAST(0 AS FLOAT)) AS MAX_KAZAN_PARA, " +
 
                               "CASE WHEN ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) <> '' THEN A.StokMiktar " +
                               "WHEN ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) <> '' THEN A.GrupMiktar " +
-                              "ELSE CAST(0 AS FLOAT) END AS Miktar, " +
-
-                              "CASE WHEN ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) <> '' THEN A.StokTutar " +
-                              "WHEN ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) <> '' THEN A.GrupTutar " +
-                              "ELSE A.AdisyonTutar END AS Tutar " +
+                              "WHEN ISNULL(LTRIM(RTRIM(SINIF_KODU)), CAST('' AS VARCHAR)) <> '' THEN A.SinifMiktar " +
+                              "ELSE CAST(0 AS FLOAT) END AS Miktar " +
 
                               "FROM " +
                               "(SELECT DISTINCT H.KOD, H.ACIKLAMA, " +
-                              "ISNULL((SELECT SUM(ISNULL((MIKTAR), CAST(0 AS FLOAT))) AS Miktar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND STOKKODU = H.STOKKODU), CAST(0 AS FLOAT)) AS StokMiktar, " +
-                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO AND SM.YEMEK_KODU1 = H.ANAGRUP), CAST(0 AS FLOAT)) AS GrupMiktar, " +
-                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND H.STOKKODU = ISNULL(GARNITUR_MASTER_STOKKODU, STOKKODU)), CAST(0 AS FLOAT)) AS StokTutar, " +
-                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO AND SM.YEMEK_KODU1 = H.ANAGRUP), CAST(0 AS FLOAT)) AS GrupTutar, " +
-                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ISKONTOTUTARI1, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS AdisyonTutar " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN HOPI_STOK AS HS ON HS.KOD = H.KOD AND HS.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS StokMiktar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU INNER JOIN HOPI_ANAGRUP AS HS ON HS.KOD = H.KOD AND HS.ANAGRUP = SM.YEMEK_KODU1 WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS GrupMiktar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.MIKTAR, CAST(0 AS FLOAT))) AS Miktar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON RC1.STOKKODU = SM.STOKKODU INNER JOIN HOPI_SINIF AS HS ON HS.KOD = H.KOD AND HS.SINIFKODU = SM.SINIF_KODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS SinifMiktar, " +
+                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN HOPI_STOK AS HS ON HS.KOD = H.KOD AND HS.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS StokTutar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) INNER JOIN HOPI_ANAGRUP AS HS ON HS.KOD = H.KOD AND HS.ANAGRUP = SM.YEMEK_KODU1 WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS GrupTutar, " +
+                              "ISNULL((SELECT SUM(ISNULL(RC1.SFIY * RC1.MIKTAR, CAST(0 AS FLOAT)) - ISNULL(RC1.ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK AS RC1 INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC1.GARNITUR_MASTER_STOKKODU, RC1.STOKKODU) INNER JOIN HOPI_SINIF AS HS ON HS.KOD = H.KOD AND HS.SINIFKODU = SM.SINIF_KODU WHERE RC1.MASANO = RC.MASANO AND RC1.CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS SinifTutar, " +
+                              "ISNULL((SELECT SUM(ISNULL(SFIY * MIKTAR, CAST(0 AS FLOAT)) - ISNULL(ALACAK, CAST(0 AS FLOAT))) AS Tutar FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS FLOAT)) AS AdisyonTutar " +
                               "FROM HOPI AS H " +
                               "INNER JOIN RESCEK AS RC ON RC.TARIH >= H.BAS_TARIHI AND RC.TARIH <= H.BIT_TARIHI AND RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO " +
-                              "INNER JOIN STKMAS AS SM ON RC.STOKKODU = SM.STOKKODU " +
                               "WHERE H.AKTIF = 1 " +
-                              (!kampanyaRequest.serverVar ? "AND (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0" : "") +
-                              ") AS A INNER JOIN HOPI H ON A.KOD = H.KOD " +
+                              (string.IsNullOrWhiteSpace(Genel.kampanyaServerName.Trim()) ? "AND (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0" : "") +
+                              ") AS A INNER JOIN HOPI H ON A.KOD = H.KOD AND H.ID = (SELECT MIN(ID) FROM HOPI WHERE KOD = H.KOD) " +
                               "WHERE " +
-                              "(ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0))) " +
-                              "OR (ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) <> '' AND ((ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar) OR (ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0))) " +
-                              "OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '' AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= AdisyonTutar)) AS B WHERE Tutar <> 0) AS C " +
-                              "WHERE (Kazanc <> 0 OR Indirim <> 0)";
+                              "   ((SELECT COUNT(STOKKODU  ) FROM HOPI_STOK    WHERE KOD = H.KOD) > 0 AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= StokMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= StokTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (StokMiktar <> 0 OR StokTutar <> 0)))) " +
+                              "OR ((SELECT COUNT(ANAGRUP   ) FROM HOPI_ANAGRUP WHERE KOD = H.KOD) > 0 AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= GrupMiktar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= GrupTutar ) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (GrupMiktar <> 0 OR GrupTutar <> 0)))) " +
+                              "OR ((SELECT COUNT(SINIFKODU ) FROM HOPI_SINIF   WHERE KOD = H.KOD) > 0 AND ((ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) <= SinifMiktar) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <> 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= SinifTutar) OR (ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) = 0 AND ISNULL(ADET, CAST(0 AS FLOAT)) = 0 AND (SinifMiktar <> 0 OR SinifTutar <> 0)))) " +
+                              "OR ((SELECT COUNT(STOKKODU  ) FROM HOPI_STOK    WHERE KOD = H.KOD) = 0 AND (SELECT COUNT(ANAGRUP   ) FROM HOPI_ANAGRUP WHERE KOD = H.KOD) = 0 AND (SELECT COUNT(SINIFKODU ) FROM HOPI_SINIF   WHERE KOD = H.KOD) = 0 AND ISNULL(FIYATSAL_SINIR, CAST(0 AS FLOAT)) <= AdisyonTutar) " +
+                              "ORDER BY HOPI_KAT DESC, INDIRIM_ORANI DESC, HOPI_KAZAN_ORANI DESC, HOPI_KAZAN_PARA DESC";
 
-            cmd.Parameters.AddWithValue("@Paracik", kampanyaRequest.paracik);
-            cmd.Parameters.AddWithValue("@MASANO", kampanyaRequest.masaNo);
-            cmd.Parameters.AddWithValue("@CEKNO", kampanyaRequest.adisyonNo);
-            cmd.Parameters.AddWithValue("@SIRKET_KODU", kampanyaRequest.sirketKodu);
+            cmd.Parameters.AddWithValue("@MASANO", masaNo);
+            cmd.Parameters.AddWithValue("@CEKNO", adisyonNo);
+            if (string.IsNullOrWhiteSpace(Genel.kampanyaServerName.Trim()))
+                cmd.Parameters.AddWithValue("@SIRKET_KODU", Genel.magazaKodu);
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -358,11 +313,17 @@ namespace Winsell.Hopi.API.Controllers
                 {
                     kodu = reader["KOD"].TOSTRING(),
                     aciklama = reader["ACIKLAMA"].TOSTRING(),
-                    kazanc = reader["Kazanc"].TODECIMAL(),
-                    indirim = reader["Indirim"].TODECIMAL(),
-                    dikkat = reader["Dikkat"].TOSTRING(),
-                    kullanilabilir = reader["Kullanilabilir"].TOINT(),
-                    indirimOrani = reader["IndirimOrani"].TODECIMAL()
+                    adet = reader["ADET"].TOINT(),
+                    indirimKat = reader["HOPI_KAT"].TODECIMAL().ROUNDTWO(),
+                    indirimOrani = reader["INDIRIM_ORANI"].TOINT(),
+                    kazancOrani = reader["HOPI_KAZAN_ORANI"].TOINT(),
+                    kazancParacik = reader["HOPI_KAZAN_PARA"].TODECIMAL().ROUNDTWO(),
+                    maksimumKatParacik = reader["MAX_HOPI_KAT"].TODECIMAL().ROUNDTWO(),
+                    maksimumKazanc = reader["MAX_KAZAN_PARA"].TODECIMAL().ROUNDTWO(),
+                    miktar = reader["Miktar"].TODECIMAL().ROUNDTWO(),
+                    fiyatsalSinir = reader["FIYATSAL_SINIR"].TODECIMAL().ROUNDTWO(),
+                    indirimler = new Dictionary<int, decimal>(),
+                    tutarlar = new Dictionary<int, decimal>()
                 };
 
                 listKampanya.Add(kampanya);
@@ -409,7 +370,7 @@ namespace Winsell.Hopi.API.Controllers
         }
 
         [HttpGet("tekStokKontrol")]
-        public bool tekStokKontrol(int masaNo, int adisyonNo)
+        public bool GetTekStokKontrol(int masaNo, int adisyonNo)
         {
             bool blnReturn = false;
 
@@ -426,7 +387,7 @@ namespace Winsell.Hopi.API.Controllers
         }
 
         [HttpGet("kismiOdemeKontrol")]
-        public bool kismiOdemeKontrol(int masaNo, int adisyonNo)
+        public bool GetKismiOdemeKontrol(int masaNo, int adisyonNo)
         {
             bool blnReturn = false;
 
@@ -440,6 +401,117 @@ namespace Winsell.Hopi.API.Controllers
             cnn.Close();
 
             return blnReturn;
+        }
+
+        [HttpGet("parametreDegeri")]
+        public List<Parametre> GetParametreDegeri(List<ParametreRequest> parametreListesi)
+        {
+            List<Parametre> listParametre = new List<Parametre>();
+
+            SqlConnection cnn = Genel.createDBConnection();
+            SqlCommand cmd = cnn.CreateCommand();
+            cmd.CommandText = "SELECT TOP 1 * FROM RESPRM";
+            SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                foreach (ParametreRequest prItem in parametreListesi)
+                {
+                    Parametre prSend = new Parametre()
+                    {
+                        adi = prItem.adi,
+                        degeri = reader[prItem.adi].ISNULL(prItem.varsayilanDegeri)
+                    };
+                    listParametre.Add(prSend);
+                }
+            }
+            reader.Close();
+            cmd.Dispose();
+            cnn.Close();
+
+            return listParametre;
+        }
+        
+        [HttpPost("kampanyaGuncelle")]
+        public static DurumResponse SetKampanyaGuncelle()
+        {
+            DurumResponse drReturn = new DurumResponse();
+            drReturn.basarili = false;
+
+            SqlConnection cnn = Genel.createDBConnection();
+            SqlCommand cmd = cnn.CreateCommand();
+            cmd.Transaction = cnn.BeginTransaction();
+
+            SqlConnection cnnKampanya = Genel.createDBConnectionKampanya();
+            SqlCommand cmdKampanya = cnnKampanya.CreateCommand();
+
+            try
+            {
+                DataTable dtHopi;
+
+
+                List<string> lstTablolar = new List<string>();
+                lstTablolar.Add("HOPI");
+                lstTablolar.Add("HOPI_STOK");
+                lstTablolar.Add("HOPI_ANAGRUP");
+                lstTablolar.Add("HOPI_SINIF");
+
+                foreach (string strTablo in lstTablolar)
+                {
+                    dtHopi = new DataTable();
+
+                    cmd.CommandText = "DELETE FROM " + strTablo;
+                    cmd.ExecuteNonQuery();
+
+                    cmdKampanya.CommandText = "SELECT * FROM " + strTablo + " AS H WHERE (SELECT COUNT(KOD) FROM HOPI_SIRKET WHERE KOD = H.KOD AND SIRKET_KODU = @SIRKET_KODU) > 0";
+                    cmdKampanya.Parameters.AddWithValue("@SIRKET_KODU", Genel.magazaKodu);
+                    SqlDataAdapter sdaKampanya = new SqlDataAdapter(cmdKampanya);
+                    sdaKampanya.Fill(dtHopi);
+                    sdaKampanya.Dispose();
+                    cmdKampanya.Parameters.Clear();
+
+
+                    string strHopiAlan = "";
+                    string strHopiParametre = "";
+
+                    foreach (DataColumn DC in dtHopi.Columns)
+                    {
+                        if (DC.ColumnName != "ID" && DC.ColumnName != "SIRANO")
+                        {
+                            strHopiAlan += !string.IsNullOrEmpty(strHopiAlan) ? ", " : "";
+                            strHopiParametre += !string.IsNullOrEmpty(strHopiParametre) ? ", " : "";
+                            strHopiAlan += DC.ColumnName;
+                            strHopiParametre += "@" + DC.ColumnName;
+                        }
+                    }
+
+                    cmd.CommandText = "INSERT INTO " + strTablo + " (" + strHopiAlan + ") " +
+                                      "VALUES (" + strHopiParametre + ")";
+                    foreach (DataRow DR in dtHopi.Rows)
+                    {
+                        foreach (DataColumn DC in dtHopi.Columns)
+                        {
+                            cmd.Parameters.AddWithValue("@" + DC.ColumnName, DR[DC.ColumnName]);
+                        }
+                        cmd.ExecuteNonQuery();
+                        cmd.Parameters.Clear();
+                    }
+                }
+
+                cmd.Transaction.Commit();
+
+                drReturn.basarili = true;
+            }
+            catch (Exception ex)
+            {
+                cmd.Transaction.Rollback();
+                drReturn.hataMesaji = "Kampanyalar güncellenirken bir hata ile karşılaşıldı." + Environment.NewLine + ex.Message;
+            }
+            cmdKampanya.Dispose();
+            cnnKampanya.Close();
+            cmd.Dispose();
+            cnn.Close();
+
+            return drReturn;
         }
     }
 }

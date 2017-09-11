@@ -54,6 +54,23 @@ namespace Winsell.Hopi.API
             return intResult;
         }
 
+        public static byte TOBYTE(this object o, byte bDefault = 0)
+        {
+            byte bResult = bDefault;
+            if (o != null && o is DBNull == false)
+            {
+                if (o is Decimal)
+                {
+                    byte.TryParse(Math.Round(((Decimal)o), 0).ToString().Trim(), out bResult);
+                }
+                else
+                {
+                    byte.TryParse(o.ToString().Trim(), out bResult);
+                }
+            }
+            return bResult;
+        }
+
         public static string TOSTRING(this object o, string strDefault = "")
         {
             string strResult = strDefault;

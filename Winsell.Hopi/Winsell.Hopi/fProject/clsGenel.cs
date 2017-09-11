@@ -47,6 +47,7 @@ namespace Winsell.Hopi.fProject
             cnn.Open();
             return cnn;
         }
+
         public static SqlConnection createDBConnectionKampanya()
         {
             SqlConnection cnn = new SqlConnection("Data Source=" + kampanyaServerName + ";Persist Security Info=true;User Id=" + kampanyaUserName + ";Password=" + kampanyaPassword + ";Initial Catalog=" + kampanyaDatabaseName);
@@ -178,12 +179,12 @@ namespace Winsell.Hopi.fProject
             fklKampanyaListesi.Dispose();
             return kampanyaBilgisi;
         }
-
-
+        
         public static string getExePath()
         {
             return Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase).Replace(@"file:\", "");
         }
+
         public static void directoryControl(string strPath)
         {
             string[] arrSplit = strPath.Split('\\');

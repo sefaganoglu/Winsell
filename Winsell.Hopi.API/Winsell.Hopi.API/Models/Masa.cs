@@ -13,6 +13,7 @@ namespace Winsell.Hopi.API.Models
         public decimal tutar { get; set; }
         public int width { get; set; }
         public int height { get; set; }
+        public string yetki { get; set; }
         public Color color { get; set; }
     }
 }
