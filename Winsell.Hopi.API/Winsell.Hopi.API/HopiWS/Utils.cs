@@ -2,7 +2,7 @@
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Winsell.Hopi.API
+namespace Winsell.Hopi.API.HopiWS
 {
     public static class Utils
     {

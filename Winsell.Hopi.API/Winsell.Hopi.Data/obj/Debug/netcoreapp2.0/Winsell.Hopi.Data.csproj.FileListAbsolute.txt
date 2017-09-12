@@ -8,7 +8,6 @@ D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\n
 D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.AssemblyInfo.cs
 D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
 D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.pdb
-D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.csprojResolveAssemblyReference.cache
 F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.deps.json
 F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
 F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\bin\Debug\netcoreapp2.0\Winsell.Hopi.Data.pdb

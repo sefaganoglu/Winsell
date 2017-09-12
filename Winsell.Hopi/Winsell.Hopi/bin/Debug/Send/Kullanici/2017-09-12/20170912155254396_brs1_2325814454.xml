@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><GetBirdUserInfoRequest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><storeCode xmlns="http://bird.kartaca.com/xmlschema/pos">brs1</storeCode><token xmlns="http://bird.kartaca.com/xmlschema/pos">2325 8144 54</token></GetBirdUserInfoRequest>

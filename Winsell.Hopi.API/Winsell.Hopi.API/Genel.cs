@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace Winsell.Hopi.API
             HopiIndirim = 1
         }
 
+        public static string numberSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
         public static string hopiWSDL = "";
         public static string connectionString = "";
         

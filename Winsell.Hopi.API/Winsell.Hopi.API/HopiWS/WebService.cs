@@ -9,7 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
-namespace Winsell.Hopi.API
+namespace Winsell.Hopi.API.HopiWS
 {
     public class WebService
     {
@@ -34,9 +34,9 @@ namespace Winsell.Hopi.API
         public Dictionary<string, string> Params = new Dictionary<string, string>();
 
 
-        public void Invoke(bool encode)
+        public WebServiceResult Invoke(bool encode)
         {
-            Execute(encode);
+            return Execute(encode);
         }
 
         private WebServiceResult Execute(bool encode)
@@ -44,27 +44,14 @@ namespace Winsell.Hopi.API
             try
             {
                 if (string.IsNullOrEmpty(Url))
-                    return new WebServiceResult { IsSuccess = false, Error = new Exception("Url Boş olamaz!!!"), ResultString = "Url Boş olamaz!!!" };
-
-
-                //if (Headers.Count > 0)
-                //{
-                //    foreach (var header in Headers)
-                //    {
-                //        xmlContent.AppendFormat(@"<{0} xmlns=""{1}"">", header.Key, ns);
-                //        foreach (var value in header.Value)
-                //            xmlContent.AppendFormat("<{0}>{1}</{0}>", HttpUtility.UrlEncode(value.Key), HttpUtility.UrlEncode(value.Value));
-                //        xmlContent.AppendFormat(@"</{0}>", header.Key);
-                //    }
-                //}
-
-
-                // < soapenv:Envelope xmlns:soapenv = "http://schemas.xmlsoap.org/soap/envelope/" xmlns: pos = "http://bird.kartaca.com/xmlschema/pos" >
+                    return new WebServiceResult
+                    {
+                        IsSuccess = false,
+                        ResultString = "{'faultcode' : 'Error', 'faultstring' : 'Url boş olamaz.', 'detail' : {'ServiceError' : {'code' : 'ERROR', 'description' : 'Url boş olamaz.'}}}"
+                    };
 
                 var xmlContent = new StringBuilder();
                 xmlContent.AppendLine(@"<{0}:Envelope xmlns:{0}=""http://schemas.xmlsoap.org/soap/envelope/"" {1}>");
-                // xmlContent.AppendLine(@"<{0}:Header/>");
-
                 xmlContent.AppendLine(@"<{0}:Header>");
                 xmlContent.AppendLine(@"<wsse:Security soapenv:mustUnderstand=""1""");
                 xmlContent.AppendLine(@"xmlns:wsse=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd""");
@@ -96,11 +83,7 @@ namespace Winsell.Hopi.API
                 var content = string.Format(xmlContent.ToString(), "soapenv",
                                                                    @"xmlns:pos=""http://bird.kartaca.com/xmlschema/pos""",
                                                                    MethodName + "Request",
-                                                                   body);
-
-
-
-
+                                                                   Environment.NewLine + body);
 
                 var req = (HttpWebRequest)WebRequest.Create(Url);
                 ServicePointManager.Expect100Continue = true;
@@ -111,7 +94,6 @@ namespace Winsell.Hopi.API
                 req.Method = "POST";
                 req.ProtocolVersion = HttpVersion.Version11;
                 req.Credentials = Credentials;
-
 
                 using (Stream stm = req.GetRequestStream())
                 {
@@ -128,9 +110,11 @@ namespace Winsell.Hopi.API
                             using (var responseReader = new StreamReader(stream))
                             {
                                 string result = responseReader.ReadToEnd();
-                                // ResponseSoap = XDocument.Parse(Utils.UnescapeString(result));
-                                ResponseSoap = XDocument.Parse(result);
-                                ExtractResult();
+                                if (!string.IsNullOrEmpty(result))
+                                {
+                                    ResponseSoap = XDocument.Parse(result);
+                                    ExtractResult();
+                                }
                             }
                         }
                     }
@@ -156,14 +140,18 @@ namespace Winsell.Hopi.API
 
                 return new WebServiceResult
                 {
-                    IsSuccess = true,
+                    IsSuccess = false,
                     ResultString = ResultString,
                     ResultXml = ResultXml
                 };
             }
             catch (Exception ex)
             {
-                return new WebServiceResult { IsSuccess = false, Error = ex };
+                return new WebServiceResult
+                {
+                    IsSuccess = false,
+                    ResultString = "{'faultcode' : 'Error', 'faultstring' : '" + ex.Message + "', 'detail' : {'ServiceError' : {'code' : 'ERROR', 'description' : '" + ex.Message + "'}}}"
+                };
             }
         }
 
@@ -180,7 +168,6 @@ namespace Winsell.Hopi.API
 
             ResultString += XElementToparla(result);
 
-
             if (result.FirstNode.NodeType == XmlNodeType.Element)
             {
                 ResultXml = XDocument.Parse(result.FirstNode.ToString());
@@ -196,26 +183,42 @@ namespace Winsell.Hopi.API
         private string XElementToparla(XElement xElement)
         {
             string resultString = "{";
-            foreach (XElement xE in xElement.Elements().Select(x => x).ToList())
+
+            List<XElement> xElements = xElement.Elements().Select(x => x).ToList();
+            for (int i = 0; i < xElements.Count; i++)
             {
+                XElement xEPrev = i != 0 ? xElement.Elements().Select(x => x).ToList()[i - 1] : null;
+                XElement xE = xElements[i];
+                XElement xENext = xElements.Count - 1 >= i + 1 ? xElement.Elements().Select(x => x).ToList()[i + 1] : null;
                 try
                 {
                     if (xE.Elements().Count() > 0)
                     {
                         if (resultString.Trim().Length > 1) resultString = resultString.Trim() + ", ";
-                        resultString += "'" + xE.Name.LocalName + "' : " + XElementToparla(xE);
+
+                        if (xEPrev == null || (xEPrev != null && xE.Name.LocalName != xEPrev.Name.LocalName))
+                            resultString += "'" + xE.Name.LocalName + "' : " + (xENext != null && xE.Name.LocalName == xENext.Name.LocalName ? "[" : "") + XElementToparla(xE);
+                        else
+                            resultString += XElementToparla(xE);
                     }
                     else
                     {
                         if (resultString.Trim().Length > 1) resultString = resultString.Trim() + ", ";
-                        resultString += "'" + xE.Name.LocalName + "' : '" + xElement.Element(xE.Name.LocalName).Value + "'";
+
+                        if (xEPrev == null || (xEPrev != null && xE.Name.LocalName != xEPrev.Name.LocalName))
+                            resultString += "'" + xE.Name.LocalName + "' : " + (xENext != null && xE.Name.LocalName == xENext.Name.LocalName ? "[" : "") + "'" + xElement.Element(xE.Name.LocalName).Value + "'";
+                        else
+                            resultString += "'" + xElement.Element(xE.Name.LocalName).Value + "'";
                     }
+
+                    resultString += (xEPrev != null && xE.Name.LocalName == xEPrev.Name.LocalName && (xENext == null || (xENext != null && xE.Name.LocalName != xENext.Name.LocalName)) ? "]" : "");
                 }
                 catch (Exception)
                 {
                     // ignored
                 }
             }
+
             resultString += "}";
 
             return resultString;

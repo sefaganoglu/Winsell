@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Winsell.Hopi.API
+namespace Winsell.Hopi.API.HopiWS
 {
     public static class Helper
     {
@@ -54,7 +54,7 @@ namespace Winsell.Hopi.API
                     return JsonConvert.DeserializeObject<T>(data);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return default(T);
             }

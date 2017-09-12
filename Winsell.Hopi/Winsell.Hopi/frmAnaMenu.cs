@@ -32,8 +32,8 @@ namespace Winsell.Hopi
             pnlIslemler.AccessibleName = ((Button)sender).AccessibleName;
             lblMasaNo.Text = ((Button)sender).AccessibleName;
             tsbHesapBol.Enabled = ((Button)sender).AccessibleDefaultActionDescription.Substring(0, 1) == "1";
-            tsbOdemeAl.Enabled =  ((Button)sender).AccessibleDefaultActionDescription.Substring(1, 1) == "1";
-            tsbHopiIade.Enabled =  ((Button)sender).AccessibleDefaultActionDescription.Substring(2, 1) == "1";
+            tsbOdemeAl.Enabled = ((Button)sender).AccessibleDefaultActionDescription.Substring(1, 1) == "1";
+            tsbHopiIade.Enabled = ((Button)sender).AccessibleDefaultActionDescription.Substring(2, 1) == "1";
             pnlIslemler.Visible = true;
             urunListesiGetir(pnlIslemler.AccessibleDescription.TOINT());
         }
@@ -132,350 +132,336 @@ namespace Winsell.Hopi
             clsSiniflar.AdisyonBilgisi adisyonBilgisi = clsGenel.secAdisyon(masaNo);
             if (adisyonBilgisi.adisyonNo > 0)
             {
-                SqlConnection cnn = clsGenel.createDBConnection();
-                SqlCommand cmd = cnn.CreateCommand();
 
-                cmd.CommandText = "SELECT COUNT(CEKNO) FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND ISNULL(BIRDID, CAST(0 AS INT)) > 0";
-                cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                if (cmd.ExecuteScalar().TOINT() == 0)
+                clsSiniflar.KimlikBilgisi kimlikBilgisi = clsGenel.kimlikKontrol();
+                if (kimlikBilgisi != null)
                 {
-                    cmd.Parameters.Clear();
-
-                    clsSiniflar.KimlikBilgisi kimlikBilgisi = clsGenel.kimlikKontrol();
-                    if (kimlikBilgisi != null)
+                    clsSiniflar.KampanyaBilgisi kampanyaBilgisi = clsGenel.secKampanya(masaNo, adisyonBilgisi.adisyonNo, kimlikBilgisi.paracik, adisyonBilgisi.adisyonTutar);
+                    if (kampanyaBilgisi != null)
                     {
-                        clsSiniflar.KampanyaBilgisi kampanyaBilgisi = clsGenel.secKampanya(masaNo, adisyonBilgisi.adisyonNo, kimlikBilgisi.paracik, adisyonBilgisi.adisyonTutar);
-                        if (kampanyaBilgisi != null)
+                        List<clsHopi.Urun> arrUrun = new List<clsHopi.Urun>();
+
+                        string strKampanyalar = "";
+                        if (kampanyaBilgisi.kampanyalar.Count > 0)
                         {
-                            List<clsHopi.Urun> arrUrun = new List<clsHopi.Urun>();
-
-                            string strKampanyalar = "";
-                            if (kampanyaBilgisi.kampanyalar.Count > 0)
-                            {
-                                foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
-                                {
-                                    if (!string.IsNullOrWhiteSpace(strKampanyalar)) strKampanyalar += ", ";
-                                    strKampanyalar += "'" + kampanya.kampanyaKodu + "'";
-                                }
-                            }
-                            else
-                            {
-                                strKampanyalar = "''";
-                            }
-
-                            string strSaticiKodu = "";
-                            cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
-                                              "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
-                                              "AS TUTAR, STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
-                                              "FROM RESCEK AS RC " +
-                                              "INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU) " +
-                                              "WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO "; // AND SFIY > 0
-                            cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                            cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                            SqlDataReader reader = cmd.ExecuteReader();
-                            while (reader.Read())
-                            {
-                                if (string.IsNullOrWhiteSpace(strSaticiKodu.Trim()))
-                                    strSaticiKodu = reader["SATICIKODU"].TOSTRING();
-
-                                clsHopi.Urun urun = new clsHopi.Urun();
-                                urun.barkod = reader["STOKKODU"].TOSTRING();
-                                if (!string.IsNullOrWhiteSpace(reader["KAMPANYA"].TOSTRING()))
-                                    urun.kampanyaKodlari = reader["KAMPANYA"].TOSTRING().Split(',').ToList();
-                                urun.kdv = reader["KDV"].TOINT();
-                                urun.miktar = reader["MIKTAR"].TODECIMAL().ROUNDTWO();
-                                urun.tutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
-                                urun.x = reader["X"].TOINT();
-                                urun.siraNo = reader["SIRANO"].TOINT();
-
-                                arrUrun.Add(urun);
-                            }
-                            reader.Close();
-                            cmd.Parameters.Clear();
-
-                            //KATLI İNDİRİM HESAPLAMA
                             foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
                             {
-                                decimal adisyondanDusulecekIndirim = 0;
-
-                                decimal dblKampanyayaDahilTutar = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar);
-                                if (kampanya.indirimKat > 0)
-                                {
-                                    foreach (clsHopi.Urun urun in arrUrun)
-                                    {
-                                        if (urun.kampanyaKodlari.Contains(kampanya.kampanyaKodu))
-                                        {
-                                            if (kampanya.tutarlar.ContainsKey(urun.kdv))
-                                                kampanya.tutarlar[urun.kdv] += urun.tutar - urun.indirimTutari;
-                                            else
-                                                kampanya.tutarlar.Add(urun.kdv, urun.tutar - urun.indirimTutari);
-
-                                            decimal gercekParacik = 0;
-                                            if (kampanya.maksimumKatParacik != 0)
-                                                gercekParacik = (kampanyaBilgisi.paracik > kampanya.maksimumKatParacik ? kampanya.maksimumKatParacik : kampanyaBilgisi.paracik);
-                                            else
-                                                gercekParacik = kampanyaBilgisi.paracik;
-
-                                            if (gercekParacik * kampanya.indirimKat > adisyonBilgisi.adisyonTutar)
-                                                gercekParacik = adisyonBilgisi.adisyonTutar / kampanya.indirimKat;
-                                            decimal indirimOrani = ((gercekParacik * kampanya.indirimKat) - gercekParacik) / (dblKampanyayaDahilTutar) * 100.TODECIMAL();
-
-                                            //indirimOrani = indirimOrani > 100 ? 100 : indirimOrani;
-
-                                            decimal indirimTutari = ((urun.tutar - urun.indirimTutari) * indirimOrani.TODECIMAL() / 100);
-                                            urun.indirimTutari += indirimTutari;
-                                            adisyondanDusulecekIndirim += indirimTutari;
-
-                                            if (kampanya.indirimler.ContainsKey(urun.kdv))
-                                                kampanya.indirimler[urun.kdv] += indirimTutari;
-                                            else
-                                                kampanya.indirimler.Add(urun.kdv, indirimTutari);
-                                        }
-                                    }
-                                }
-                                adisyonBilgisi.adisyonTutar -= adisyondanDusulecekIndirim;
+                                if (!string.IsNullOrWhiteSpace(strKampanyalar)) strKampanyalar += ", ";
+                                strKampanyalar += "'" + kampanya.kampanyaKodu + "'";
                             }
-                            ////////////////////////////
-                            adisyonBilgisi.adisyonTutar = adisyonBilgisi.adisyonTutar.ROUNDTWO();
-                            if (kampanyaBilgisi.paracik > adisyonBilgisi.adisyonTutar) kampanyaBilgisi.paracik = adisyonBilgisi.adisyonTutar.ROUNDTWO();
+                        }
+                        else
+                        {
+                            strKampanyalar = "''";
+                        }
 
-                            //YÜZDELİ İNDİRİM HESAPLAMA (KATLI İNDİRİM DÜŞÜLDÜKTEN SONRA)
-                            foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
+                        string strSaticiKodu = "";
+
+                        SqlConnection cnn = clsGenel.createDBConnection();
+                        SqlCommand cmd = cnn.CreateCommand();
+                        cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) - " +
+                                          "ROUND(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS MONEY)) * ((ISNULL((SELECT SUM(CAST(REPLACE(REPLACE(ISNULL(ISK, CAST('0' AS VARCHAR)), ',', ''), '.', '') AS MONEY)) FROM ODEME_TEMP WHERE CEKNO = RC.CEKNO), CAST(0 AS MONEY)) / CAST(100 AS MONEY)) / ISNULL((SELECT SUM(ISNULL(MIKTAR * SFIY, CAST(0 AS MONEY))) FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO), CAST(0 AS MONEY))), 2) " +
+                                          "AS TUTAR, STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
+                                          "FROM RESCEK AS RC " +
+                                          "INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU) " +
+                                          "WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO "; // AND SFIY > 0
+                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            if (string.IsNullOrWhiteSpace(strSaticiKodu.Trim()))
+                                strSaticiKodu = reader["SATICIKODU"].TOSTRING();
+
+                            clsHopi.Urun urun = new clsHopi.Urun();
+                            urun.barkod = reader["STOKKODU"].TOSTRING();
+                            if (!string.IsNullOrWhiteSpace(reader["KAMPANYA"].TOSTRING()))
+                                urun.kampanyaKodlari = reader["KAMPANYA"].TOSTRING().Split(',').ToList();
+                            urun.kdv = reader["KDV"].TOINT();
+                            urun.miktar = reader["MIKTAR"].TODECIMAL().ROUNDTWO();
+                            urun.tutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
+                            urun.x = reader["X"].TOINT();
+                            urun.siraNo = reader["SIRANO"].TOINT();
+
+                            arrUrun.Add(urun);
+                        }
+                        reader.Close();
+                        cmd.Parameters.Clear();
+
+                        //KATLI İNDİRİM HESAPLAMA
+                        foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
+                        {
+                            decimal adisyondanDusulecekIndirim = 0;
+
+                            decimal dblKampanyayaDahilTutar = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar);
+                            if (kampanya.indirimKat > 0)
                             {
-                                decimal adisyondanDusulecekIndirim = 0;
-
-                                decimal dblKampanyayaDahilTutar = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar);
-                                if (kampanya.indirimOrani > 0)
+                                foreach (clsHopi.Urun urun in arrUrun)
                                 {
-                                    foreach (clsHopi.Urun urun in arrUrun)
+                                    if (urun.kampanyaKodlari.Contains(kampanya.kampanyaKodu))
                                     {
-                                        if (urun.kampanyaKodlari.Contains(kampanya.kampanyaKodu))
-                                        {
-                                            if (kampanya.tutarlar.ContainsKey(urun.kdv))
-                                                kampanya.tutarlar[urun.kdv] += urun.tutar - urun.indirimTutari;
-                                            else
-                                                kampanya.tutarlar.Add(urun.kdv, urun.tutar - urun.indirimTutari);
-
-                                            var indirimOrani = kampanya.indirimOrani;
-                                            decimal indirimTutari = ((urun.tutar - urun.indirimTutari) * indirimOrani.TODECIMAL() / 100);
-                                            urun.indirimTutari += indirimTutari;
-                                            adisyonBilgisi.adisyonTutar -= urun.indirimTutari;
-
-                                            if (kampanya.indirimler.ContainsKey(urun.kdv))
-                                                kampanya.indirimler[urun.kdv] += indirimTutari;
-                                            else
-                                                kampanya.indirimler.Add(urun.kdv, indirimTutari);
-                                        }
-                                    }
-                                }
-                                adisyonBilgisi.adisyonTutar -= adisyondanDusulecekIndirim;
-                            }
-                            ////////////////////////////
-                            adisyonBilgisi.adisyonTutar = adisyonBilgisi.adisyonTutar.ROUNDTWO();
-
-                            clsHopi.AlisverisBilgisi alisverisBilgisi = new clsHopi.AlisverisBilgisi();
-                            alisverisBilgisi.birdId = kimlikBilgisi.birdId;
-                            alisverisBilgisi.dateTime = DateTime.Now;
-                            alisverisBilgisi.hopiPayId = 0;
-                            alisverisBilgisi.kasaNo = strSaticiKodu;
-                            alisverisBilgisi.kullanilacakParacik = kampanyaBilgisi.paracik;
-                            alisverisBilgisi.storeCode = clsGenel.storeCode;
-                            alisverisBilgisi.transactionId = alisverisBilgisi.dateTime.ToString("yyyyMMddHHmmssfff") + "_" + clsGenel.storeCode + "_" + adisyonBilgisi.adisyonNo;
-
-                            foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
-                            {
-                                clsHopi.Kampanya kampanyaHopi = new clsHopi.Kampanya();
-                                kampanyaHopi.kampanyaKodu = kampanya.kampanyaKodu;
-                                if (kampanya.kazancOrani != 0 || kampanya.kazancParacik != 0)
-                                {
-                                    var vKampanyaliKdvGrupluTutarlar = from tab in arrUrun.AsEnumerable()
-                                                                       where tab.kampanyaKodlari.Contains(kampanya.kampanyaKodu)
-                                                                       group tab by tab.kdv
-                                                                       into groupDt
-                                                                       select new
-                                                                       {
-                                                                           Kdv = groupDt.Key,
-                                                                           SumTutar = groupDt.Sum((r) => (r.tutar - r.indirimTutari))
-                                                                       };
-
-                                    foreach (var item in vKampanyaliKdvGrupluTutarlar)
-                                    {
-                                        if (kampanya.tutarlar.ContainsKey(item.Kdv))
-                                            kampanya.tutarlar[item.Kdv] += item.SumTutar;
+                                        if (kampanya.tutarlar.ContainsKey(urun.kdv))
+                                            kampanya.tutarlar[urun.kdv] += urun.tutar - urun.indirimTutari;
                                         else
-                                            kampanya.tutarlar.Add(item.Kdv, item.SumTutar);
-                                    }
+                                            kampanya.tutarlar.Add(urun.kdv, urun.tutar - urun.indirimTutari);
 
-
-                                    decimal kampanyaTutari = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar - p.indirimTutari);
-
-
-
-                                    if (kampanya.fiyatsalSinir == 0 || kampanyaTutari >= kampanya.fiyatsalSinir)
-                                    {
-                                        if (kampanya.kazancOrani > 0)
-                                            kampanyaHopi.paracikKazanc = kampanyaTutari * kampanya.kazancOrani / 100;
+                                        decimal gercekParacik = 0;
+                                        if (kampanya.maksimumKatParacik != 0)
+                                            gercekParacik = (kampanyaBilgisi.paracik > kampanya.maksimumKatParacik ? kampanya.maksimumKatParacik : kampanyaBilgisi.paracik);
                                         else
-                                            kampanyaHopi.paracikKazanc = kampanya.kazancParacik;
+                                            gercekParacik = kampanyaBilgisi.paracik;
 
-                                        if (kampanyaHopi.paracikKazanc > kampanya.maksimumKazanc)
-                                            kampanyaHopi.paracikKazanc = kampanya.maksimumKazanc;
+                                        if (gercekParacik * kampanya.indirimKat > adisyonBilgisi.adisyonTutar)
+                                            gercekParacik = adisyonBilgisi.adisyonTutar / kampanya.indirimKat;
+                                        decimal indirimOrani = ((gercekParacik * kampanya.indirimKat) - gercekParacik) / (dblKampanyayaDahilTutar) * 100.TODECIMAL();
 
-                                        kampanyaHopi.paracikKazanc = kampanyaHopi.paracikKazanc * (kampanya.adet > 0 ? kampanya.miktar / kampanya.adet : 1);
+                                        //indirimOrani = indirimOrani > 100 ? 100 : indirimOrani;
+
+                                        decimal indirimTutari = ((urun.tutar - urun.indirimTutari) * indirimOrani.TODECIMAL() / 100);
+                                        urun.indirimTutari += indirimTutari;
+                                        adisyondanDusulecekIndirim += indirimTutari;
+
+                                        if (kampanya.indirimler.ContainsKey(urun.kdv))
+                                            kampanya.indirimler[urun.kdv] += indirimTutari;
+                                        else
+                                            kampanya.indirimler.Add(urun.kdv, indirimTutari);
                                     }
                                 }
-                                kampanyaHopi.tutarlar = kampanya.tutarlar;
-                                kampanyaHopi.indirimler = kampanya.indirimler;
-
-                                alisverisBilgisi.kampanyalar.Add(kampanyaHopi);
                             }
+                            adisyonBilgisi.adisyonTutar -= adisyondanDusulecekIndirim;
+                        }
+                        ////////////////////////////
+                        adisyonBilgisi.adisyonTutar = adisyonBilgisi.adisyonTutar.ROUNDTWO();
+                        if (kampanyaBilgisi.paracik > adisyonBilgisi.adisyonTutar) kampanyaBilgisi.paracik = adisyonBilgisi.adisyonTutar.ROUNDTWO();
 
-                            alisverisBilgisi.urunler.AddRange(arrUrun);
+                        //YÜZDELİ İNDİRİM HESAPLAMA (KATLI İNDİRİM DÜŞÜLDÜKTEN SONRA)
+                        foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
+                        {
+                            decimal adisyondanDusulecekIndirim = 0;
 
-                            clsHopi.AlisverisResponse alisverisResponse = clsHopiIslem.setAlisverisBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, alisverisBilgisi);
-                            if (alisverisResponse.basarili)
+                            decimal dblKampanyayaDahilTutar = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar);
+                            if (kampanya.indirimOrani > 0)
                             {
-                                cmd.Transaction = cnn.BeginTransaction();
-
-                                try
+                                foreach (clsHopi.Urun urun in arrUrun)
                                 {
-                                    decimal dIskontoToplami = 0;
-                                    cmd.CommandText = "UPDATE RESCEK SET BIRDID = @BIRDID, KAMPANYA_KODU = @KAMPANYA_KODU, HOPI_INDIRIM = @HOPI_INDIRIM WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND X = @X AND STOKKODU = @STOKKODU AND SIRANO = @SIRANO";
-                                    foreach (clsHopi.Urun urun in alisverisBilgisi.urunler)
+                                    if (urun.kampanyaKodlari.Contains(kampanya.kampanyaKodu))
                                     {
-                                        if (urun.kampanyaKodlari.Count > 0)
-                                        {
-                                            string strUrunKampanyalar = urun.kampanyaKodlari.Aggregate((i, j) => i + ',' + j);
-                                            
-                                            cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
-                                            cmd.Parameters.AddWithValue("@KAMPANYA_KODU", strUrunKampanyalar);
-                                            cmd.Parameters.AddWithValue("@HOPI_INDIRIM", urun.indirimTutari);
-                                            cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                            cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                            cmd.Parameters.AddWithValue("@X", urun.x);
-                                            cmd.Parameters.AddWithValue("@STOKKODU", urun.barkod);
-                                            cmd.Parameters.AddWithValue("@SIRANO", urun.siraNo);
-                                            cmd.ExecuteNonQuery();
-                                            cmd.Parameters.Clear();
+                                        if (kampanya.tutarlar.ContainsKey(urun.kdv))
+                                            kampanya.tutarlar[urun.kdv] += urun.tutar - urun.indirimTutari;
+                                        else
+                                            kampanya.tutarlar.Add(urun.kdv, urun.tutar - urun.indirimTutari);
 
-                                            dIskontoToplami += urun.indirimTutari;
-                                        }
+                                        var indirimOrani = kampanya.indirimOrani;
+                                        decimal indirimTutari = ((urun.tutar - urun.indirimTutari) * indirimOrani.TODECIMAL() / 100);
+                                        urun.indirimTutari += indirimTutari;
+                                        adisyonBilgisi.adisyonTutar -= urun.indirimTutari;
+
+                                        if (kampanya.indirimler.ContainsKey(urun.kdv))
+                                            kampanya.indirimler[urun.kdv] += indirimTutari;
+                                        else
+                                            kampanya.indirimler.Add(urun.kdv, indirimTutari);
                                     }
-                                    dIskontoToplami = dIskontoToplami.ROUNDTWO();
+                                }
+                            }
+                            adisyonBilgisi.adisyonTutar -= adisyondanDusulecekIndirim;
+                        }
+                        ////////////////////////////
+                        adisyonBilgisi.adisyonTutar = adisyonBilgisi.adisyonTutar.ROUNDTWO();
 
-                                    if (dIskontoToplami != 0)
-                                    {
-                                        cmd.CommandText = "INSERT INTO ODEME_TEMP (CEKNO, LST1, LST2, ISKONTO, LST3, KARTKODU, ISK) " +
-                                                          "SELECT @CEKNO, ACIKLAMA, @SEPARATOR + '00', @ISKONTO, '0', KOD, @ISK FROM KRDKRT WHERE KOD = @KOD";
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.Parameters.AddWithValue("@SEPARATOR", clsGenel.numberSeparator);
-                                        cmd.Parameters.AddWithValue("@ISKONTO", dIskontoToplami.ROUNDTWO().TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
-                                        cmd.Parameters.AddWithValue("@ISK", dIskontoToplami.ROUNDTWO().TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
-                                        cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiIndirimOdemeKodu);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-                                    }
+                        clsHopi.AlisverisBilgisi alisverisBilgisi = new clsHopi.AlisverisBilgisi();
+                        alisverisBilgisi.birdId = kimlikBilgisi.birdId;
+                        alisverisBilgisi.dateTime = DateTime.Now;
+                        alisverisBilgisi.hopiPayId = 0;
+                        alisverisBilgisi.kasaNo = strSaticiKodu;
+                        alisverisBilgisi.kullanilacakParacik = kampanyaBilgisi.paracik;
+                        alisverisBilgisi.storeCode = clsGenel.storeCode;
+                        alisverisBilgisi.transactionId = alisverisBilgisi.dateTime.ToString("yyyyMMddHHmmssfff") + "_" + clsGenel.storeCode + "_" + adisyonBilgisi.adisyonNo;
 
-                                    //HOPI ODEME KAYDI
-                                    if (alisverisBilgisi.kullanilacakParacik != 0)
+                        foreach (clsSiniflar.Kampanya kampanya in kampanyaBilgisi.kampanyalar)
+                        {
+                            clsHopi.Kampanya kampanyaHopi = new clsHopi.Kampanya();
+                            kampanyaHopi.kampanyaKodu = kampanya.kampanyaKodu;
+                            if (kampanya.kazancOrani != 0 || kampanya.kazancParacik != 0)
+                            {
+                                var vKampanyaliKdvGrupluTutarlar = from tab in arrUrun.AsEnumerable()
+                                                                   where tab.kampanyaKodlari.Contains(kampanya.kampanyaKodu)
+                                                                   group tab by tab.kdv
+                                                                   into groupDt
+                                                                   select new
+                                                                   {
+                                                                       Kdv = groupDt.Key,
+                                                                       SumTutar = groupDt.Sum((r) => (r.tutar - r.indirimTutari))
+                                                                   };
+
+                                foreach (var item in vKampanyaliKdvGrupluTutarlar)
+                                {
+                                    if (kampanya.tutarlar.ContainsKey(item.Kdv))
+                                        kampanya.tutarlar[item.Kdv] += item.SumTutar;
+                                    else
+                                        kampanya.tutarlar.Add(item.Kdv, item.SumTutar);
+                                }
+
+
+                                decimal kampanyaTutari = arrUrun.Where(p => p.kampanyaKodlari.Contains(kampanya.kampanyaKodu)).Sum(p => p.tutar - p.indirimTutari);
+
+
+
+                                if (kampanya.fiyatsalSinir == 0 || kampanyaTutari >= kampanya.fiyatsalSinir)
+                                {
+                                    if (kampanya.kazancOrani > 0)
+                                        kampanyaHopi.paracikKazanc = kampanyaTutari * kampanya.kazancOrani / 100;
+                                    else
+                                        kampanyaHopi.paracikKazanc = kampanya.kazancParacik;
+
+                                    if (kampanyaHopi.paracikKazanc > kampanya.maksimumKazanc)
+                                        kampanyaHopi.paracikKazanc = kampanya.maksimumKazanc;
+
+                                    kampanyaHopi.paracikKazanc = kampanyaHopi.paracikKazanc * (kampanya.adet > 0 ? kampanya.miktar / kampanya.adet : 1);
+                                }
+                            }
+                            kampanyaHopi.tutarlar = kampanya.tutarlar;
+                            kampanyaHopi.indirimler = kampanya.indirimler;
+
+                            alisverisBilgisi.kampanyalar.Add(kampanyaHopi);
+                        }
+
+                        alisverisBilgisi.urunler.AddRange(arrUrun);
+
+                        clsHopi.AlisverisResponse alisverisResponse = clsHopiIslem.setAlisverisBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, alisverisBilgisi);
+                        if (alisverisResponse.basarili)
+                        {
+                            cmd.Transaction = cnn.BeginTransaction();
+
+                            try
+                            {
+                                decimal dIskontoToplami = 0;
+                                cmd.CommandText = "UPDATE RESCEK SET BIRDID = @BIRDID, KAMPANYA_KODU = @KAMPANYA_KODU, HOPI_INDIRIM = @HOPI_INDIRIM WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND X = @X AND STOKKODU = @STOKKODU AND SIRANO = @SIRANO";
+                                foreach (clsHopi.Urun urun in alisverisBilgisi.urunler)
+                                {
+                                    if (urun.kampanyaKodlari.Count > 0)
                                     {
-                                        cmd.CommandText = "INSERT INTO RESCEK (MASANO, TARIH, CEKNO, KARTKODU, SATICIKODU, KOD, ALACAK, MASANOSTR, KAYNAK, HESAPADI, INDIRIM_CARISI, BIRDID) " +
-                                                          "SELECT @MASANO, @TARIH, @CEKNO, KOD, @SATICIKODU, 'A', @ALACAK, @MASANOSTR, @KAYNAK, CAST('' AS VARCHAR), CAST('' AS VARCHAR), @BIRDID  FROM KRDKRT WHERE KOD = @KOD";
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@TARIH", alisverisBilgisi.dateTime.Date);
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.Parameters.AddWithValue("@SATICIKODU", clsGenel.kullaniciKodu);
-                                        cmd.Parameters.AddWithValue("@ALACAK", alisverisBilgisi.kullanilacakParacik);
-                                        cmd.Parameters.AddWithValue("@MASANOSTR", pnlIslemler.AccessibleName);
-                                        cmd.Parameters.AddWithValue("@KAYNAK", 9);
+                                        string strUrunKampanyalar = urun.kampanyaKodlari.Aggregate((i, j) => i + ',' + j);
+
                                         cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
-                                        cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiOdemeKodu);
+                                        cmd.Parameters.AddWithValue("@KAMPANYA_KODU", strUrunKampanyalar);
+                                        cmd.Parameters.AddWithValue("@HOPI_INDIRIM", urun.indirimTutari);
+                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                        cmd.Parameters.AddWithValue("@X", urun.x);
+                                        cmd.Parameters.AddWithValue("@STOKKODU", urun.barkod);
+                                        cmd.Parameters.AddWithValue("@SIRANO", urun.siraNo);
                                         cmd.ExecuteNonQuery();
                                         cmd.Parameters.Clear();
-                                    }
 
-                                    //HOPIHRY KAYDI
-                                    cmd.CommandText = "INSERT INTO HOPIHRY (MASANO, CEKNO, KAMPANYA_KODU, TUTAR, INDIRIM, KAZANILAN_PARACIK, HARCANAN_PARACIK, TRANSACTION_ID, BIRDID, ODEME_TRANSACTION_ID) VALUES (@MASANO, @CEKNO, @KAMPANYA_KODU, @TUTAR, @INDIRIM, @KAZANILAN_PARACIK, @HARCANAN_PARACIK, @TRANSACTION_ID, @BIRDID, @ODEME_TRANSACTION_ID)";
+                                        dIskontoToplami += urun.indirimTutari;
+                                    }
+                                }
+                                dIskontoToplami = dIskontoToplami.ROUNDTWO();
+
+                                if (dIskontoToplami != 0)
+                                {
+                                    cmd.CommandText = "INSERT INTO ODEME_TEMP (CEKNO, LST1, LST2, ISKONTO, LST3, KARTKODU, ISK) " +
+                                                      "SELECT @CEKNO, ACIKLAMA, @SEPARATOR + '00', @ISKONTO, '0', KOD, @ISK FROM KRDKRT WHERE KOD = @KOD";
+                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                    cmd.Parameters.AddWithValue("@SEPARATOR", clsGenel.numberSeparator);
+                                    cmd.Parameters.AddWithValue("@ISKONTO", dIskontoToplami.ROUNDTWO().TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
+                                    cmd.Parameters.AddWithValue("@ISK", dIskontoToplami.ROUNDTWO().TOSTRING().Replace(",", clsGenel.numberSeparator).Replace(".", clsGenel.numberSeparator));
+                                    cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiIndirimOdemeKodu);
+                                    cmd.ExecuteNonQuery();
+                                    cmd.Parameters.Clear();
+                                }
+
+                                //HOPI ODEME KAYDI
+                                if (alisverisBilgisi.kullanilacakParacik != 0)
+                                {
+                                    cmd.CommandText = "INSERT INTO RESCEK (MASANO, TARIH, CEKNO, KARTKODU, SATICIKODU, KOD, ALACAK, MASANOSTR, KAYNAK, HESAPADI, INDIRIM_CARISI, BIRDID) " +
+                                                      "SELECT @MASANO, @TARIH, @CEKNO, KOD, @SATICIKODU, 'A', @ALACAK, @MASANOSTR, @KAYNAK, CAST('' AS VARCHAR), CAST('' AS VARCHAR), @BIRDID  FROM KRDKRT WHERE KOD = @KOD";
+                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                    cmd.Parameters.AddWithValue("@TARIH", alisverisBilgisi.dateTime.Date);
+                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                    cmd.Parameters.AddWithValue("@SATICIKODU", clsGenel.kullaniciKodu);
+                                    cmd.Parameters.AddWithValue("@ALACAK", alisverisBilgisi.kullanilacakParacik);
+                                    cmd.Parameters.AddWithValue("@MASANOSTR", pnlIslemler.AccessibleName);
+                                    cmd.Parameters.AddWithValue("@KAYNAK", 9);
+                                    cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
+                                    cmd.Parameters.AddWithValue("@KOD", clsGenel.hopiOdemeKodu);
+                                    cmd.ExecuteNonQuery();
+                                    cmd.Parameters.Clear();
+                                }
+
+                                //HOPIHRY KAYDI
+                                cmd.CommandText = "INSERT INTO HOPIHRY (MASANO, CEKNO, KAMPANYA_KODU, TUTAR, INDIRIM, KAZANILAN_PARACIK, HARCANAN_PARACIK, TRANSACTION_ID, BIRDID, ODEME_TRANSACTION_ID) VALUES (@MASANO, @CEKNO, @KAMPANYA_KODU, @TUTAR, @INDIRIM, @KAZANILAN_PARACIK, @HARCANAN_PARACIK, @TRANSACTION_ID, @BIRDID, @ODEME_TRANSACTION_ID)";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.Parameters.AddWithValue("@KAMPANYA_KODU", "");
+                                cmd.Parameters.AddWithValue("@TUTAR", alisverisBilgisi.urunler.AsEnumerable().Where(p => p.kampanyaKodlari.Count == 0).Sum(p => p.tutar).ROUNDTWO());
+                                cmd.Parameters.AddWithValue("@INDIRIM", alisverisBilgisi.urunler.AsEnumerable().Where(p => p.kampanyaKodlari.Count == 0).Sum(p => p.indirimTutari).ROUNDTWO());
+                                cmd.Parameters.AddWithValue("@KAZANILAN_PARACIK", 0);
+                                cmd.Parameters.AddWithValue("@HARCANAN_PARACIK", alisverisBilgisi.kullanilacakParacik.ROUNDTWO());
+                                cmd.Parameters.AddWithValue("@TRANSACTION_ID", alisverisBilgisi.transactionId);
+                                cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
+                                cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", alisverisResponse.odemeTransactionId);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
+
+                                foreach (clsHopi.Kampanya kampanya in alisverisBilgisi.kampanyalar)
+                                {
                                     cmd.Parameters.AddWithValue("@MASANO", masaNo);
                                     cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.Parameters.AddWithValue("@KAMPANYA_KODU", "");
-                                    cmd.Parameters.AddWithValue("@TUTAR", alisverisBilgisi.urunler.AsEnumerable().Where(p => p.kampanyaKodlari.Count == 0).Sum(p => p.tutar).ROUNDTWO());
-                                    cmd.Parameters.AddWithValue("@INDIRIM", alisverisBilgisi.urunler.AsEnumerable().Where(p => p.kampanyaKodlari.Count == 0).Sum(p => p.indirimTutari).ROUNDTWO());
-                                    cmd.Parameters.AddWithValue("@KAZANILAN_PARACIK", 0);
+                                    cmd.Parameters.AddWithValue("@KAMPANYA_KODU", kampanya.kampanyaKodu);
+                                    cmd.Parameters.AddWithValue("@TUTAR", kampanya.tutarlar.Sum(p => p.Value).ROUNDTWO());
+                                    cmd.Parameters.AddWithValue("@INDIRIM", kampanya.indirimler.Sum(p => p.Value).ROUNDTWO());
+                                    cmd.Parameters.AddWithValue("@KAZANILAN_PARACIK", kampanya.paracikKazanc.ROUNDTWO());
                                     cmd.Parameters.AddWithValue("@HARCANAN_PARACIK", alisverisBilgisi.kullanilacakParacik.ROUNDTWO());
                                     cmd.Parameters.AddWithValue("@TRANSACTION_ID", alisverisBilgisi.transactionId);
                                     cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
                                     cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", alisverisResponse.odemeTransactionId);
                                     cmd.ExecuteNonQuery();
                                     cmd.Parameters.Clear();
-
-                                    foreach (clsHopi.Kampanya kampanya in alisverisBilgisi.kampanyalar)
-                                    {
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.Parameters.AddWithValue("@KAMPANYA_KODU", kampanya.kampanyaKodu);
-                                        cmd.Parameters.AddWithValue("@TUTAR", kampanya.tutarlar.Sum(p => p.Value).ROUNDTWO());
-                                        cmd.Parameters.AddWithValue("@INDIRIM", kampanya.indirimler.Sum(p => p.Value).ROUNDTWO());
-                                        cmd.Parameters.AddWithValue("@KAZANILAN_PARACIK", kampanya.paracikKazanc.ROUNDTWO());
-                                        cmd.Parameters.AddWithValue("@HARCANAN_PARACIK", alisverisBilgisi.kullanilacakParacik.ROUNDTWO());
-                                        cmd.Parameters.AddWithValue("@TRANSACTION_ID", alisverisBilgisi.transactionId);
-                                        cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisi.birdId);
-                                        cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", alisverisResponse.odemeTransactionId);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-                                    }
+                                }
 
 
 
-                                    //RESHRY KAYDI
-                                    cmd.CommandText = "SELECT SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Bakiye FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                //RESHRY KAYDI
+                                cmd.CommandText = "SELECT SUM(ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) - ISNULL(RC.ALACAK, CAST(0 AS FLOAT))) AS Bakiye FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                if (cmd.ExecuteScalar().TODECIMAL() <= 0)
+                                {
+                                    cmd.Parameters.Clear();
+
+                                    cmd.CommandText = "INSERT INTO RESHRY (ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, GUN_SIP_NO, HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, HOPI_INDIRIM, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, KISI_SAYISI, KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, R_A, SAAT, SATICIKODU, SATIS_TURU, SFIY, SIPARISNO, SIPARIS_YERI, SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI) " +
+                                                      "SELECT ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, ISNULL(GUN_SIP_NO, (SELECT TOP 1 GUN_SIP_NO FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND GUN_SIP_NO IS NOT NULL)), HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, HOPI_INDIRIM, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, ISNULL(KISI_SAYISI, (SELECT TOP 1 KISI_SAYISI FROM RESYAZ WHERE CEKNO = RC.CEKNO)), KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, @R_A, @SAAT, SATICIKODU, ISNULL(SATIS_TURU, (SELECT SATIS_TURU FROM KRDKRT WHERE KOD = (SELECT TOP 1 KARTKODU FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KARTKODU IS NOT NULL))), SFIY, SIPARISNO, @SIPARIS_YERI, ISNULL(SIRKET_KODU, CAST('' AS VARCHAR)) AS SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, ISNULL(X, SIRANO) AS X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                    cmd.Parameters.AddWithValue("@R_A", "R");
+                                    cmd.Parameters.AddWithValue("@SAAT", alisverisBilgisi.dateTime.ToString("HH:mm:ss"));
+                                    cmd.Parameters.AddWithValue("@SIPARIS_YERI", "R");
                                     cmd.Parameters.AddWithValue("@MASANO", masaNo);
                                     cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    if (cmd.ExecuteScalar().TODECIMAL() <= 0)
-                                    {
-                                        cmd.Parameters.Clear();
+                                    cmd.ExecuteNonQuery();
+                                    cmd.Parameters.Clear();
 
-                                        cmd.CommandText = "INSERT INTO RESHRY (ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, GUN_SIP_NO, HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, HOPI_INDIRIM, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, KISI_SAYISI, KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, R_A, SAAT, SATICIKODU, SATIS_TURU, SFIY, SIPARISNO, SIPARIS_YERI, SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI) " +
-                                                          "SELECT ADISYON_TIPI, AFIY, ALACAK, BARKOD, BIRDID, CEKNO, CHSMAS_SIRANO, DVZ_KODU, DVZ_KUR, DVZ_TUTARI, DVZ_TUTARI_ALINACAK, FATURANO, GARNITUR_MASTER_STOKKODU, GITTI, ISNULL(GUN_SIP_NO, (SELECT TOP 1 GUN_SIP_NO FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND GUN_SIP_NO IS NOT NULL)), HAZIRLANDI, HAZIRLANMA_TARIHI, HAZIRLAYAN, HESAPADI, HESAPNO, HOPI_INDIRIM, ILK_FIYAT, INDIRIM_CARISI, IPTMIKTAR, IPTTUTAR, ISKONTOORANI, ISKONTOTUTARI, ISKONTOTUTARI1, KAMPANYA_KODU, KARTKODU, KDV, ISNULL(KISI_SAYISI, (SELECT TOP 1 KISI_SAYISI FROM RESYAZ WHERE CEKNO = RC.CEKNO)), KOD, KURYE_KODU, MASANO, MASANOSTR, MASTER_CEKNO, MIKTAR, MIKTAR_ACK, ODENMEZ_ACIKLAMA, ODENMEZ_DETAY_ACIKLAMA, ODENMEZ_DETAY_KOD, ODENMEZ_KOD, ORJ_FIYAT, @R_A, @SAAT, SATICIKODU, ISNULL(SATIS_TURU, (SELECT SATIS_TURU FROM KRDKRT WHERE KOD = (SELECT TOP 1 KARTKODU FROM RESCEK WHERE MASANO = RC.MASANO AND CEKNO = RC.CEKNO AND KARTKODU IS NOT NULL))), SFIY, SIPARISNO, @SIPARIS_YERI, ISNULL(SIRKET_KODU, CAST('' AS VARCHAR)) AS SIRKET_KODU, STOKADI, STOKKODU, TARIH, TERAZI_ID, TERAZI_USER, TIP, X, ISNULL(X, SIRANO) AS X_S, YAZICI, YAZNO, YAZSIRA, YSEPETI_MessageId, ZAYI_SEBEBI FROM RESCEK AS RC WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                        cmd.Parameters.AddWithValue("@R_A", "R");
-                                        cmd.Parameters.AddWithValue("@SAAT", alisverisBilgisi.dateTime.ToString("HH:mm:ss"));
-                                        cmd.Parameters.AddWithValue("@SIPARIS_YERI", "R");
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-
-                                        cmd.CommandText = "DELETE FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                        cmd.ExecuteNonQuery();
-                                        cmd.Parameters.Clear();
-                                    }
-
-                                    cmd.Transaction.Commit();
-                                    MessageBox.Show("Ödeme/kazanma işlemi başarılı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-                                    tsbYenile.PerformClick();
+                                    cmd.CommandText = "DELETE FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                    cmd.ExecuteNonQuery();
+                                    cmd.Parameters.Clear();
                                 }
-                                catch (Exception ex)
-                                {
-                                    cmd.Transaction.Rollback();
-                                    MessageBox.Show("Ödeme/kazanma işlemi başarılı. Ancak veritabanına kaydederken hata oluştu." + Environment.NewLine + ex.Message, "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
-                                    tsbYenile.PerformClick();
-                                }
+
+                                cmd.Transaction.Commit();
+                                MessageBox.Show("Ödeme/kazanma işlemi başarılı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                                tsbYenile.PerformClick();
                             }
-                            //}
+                            catch (Exception ex)
+                            {
+                                cmd.Transaction.Rollback();
+                                MessageBox.Show("Ödeme/kazanma işlemi başarılı. Ancak veritabanına kaydederken hata oluştu." + Environment.NewLine + ex.Message, "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                                tsbYenile.PerformClick();
+                            }
                         }
+                        cmd.Dispose();
+                        cnn.Close();
                     }
                 }
-                else
-                {
-                    MessageBox.Show(
-                        "Bu adisyonda daha önce hopi ödemesi/kazanması kullanılmış.",
-                        "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
-                }
-                cmd.Dispose();
-                cnn.Close();
             }
         }
 
@@ -523,161 +509,147 @@ namespace Winsell.Hopi
             clsSiniflar.AdisyonBilgisi adisyonBilgisi = clsGenel.secAdisyon(masaNo, true);
             if (adisyonBilgisi.adisyonNo > 0)
             {
-                SqlConnection cnn = clsGenel.createDBConnection();
-                SqlCommand cmd = cnn.CreateCommand();
-
-                cmd.CommandText = "SELECT COUNT(SIRANO) FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                if (cmd.ExecuteScalar().TOINT() != 0)
+                if (MessageBox.Show("Bu adisyonu iade etmek istediğinize emin misiniz?", "İade İşlemi", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                 {
-                    cmd.Parameters.Clear();
-                    if (MessageBox.Show("Bu adisyonu iade etmek istediğinize emin misiniz?", "İade İşlemi", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    SqlConnection cnn = clsGenel.createDBConnection();
+                    SqlCommand cmd = cnn.CreateCommand();
+                    clsHopi.AlisverisIadeBilgisi alisverisIadeBilgisi = new clsHopi.AlisverisIadeBilgisi();
+
+                    alisverisIadeBilgisi.storeCode = clsGenel.storeCode;
+
+                    cmd.CommandText = "SELECT * FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
                     {
-                        clsHopi.AlisverisIadeBilgisi alisverisIadeBilgisi = new clsHopi.AlisverisIadeBilgisi();
-
-
-                        alisverisIadeBilgisi.storeCode = clsGenel.storeCode;
-
-                        cmd.CommandText = "SELECT * FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                        SqlDataReader reader = cmd.ExecuteReader();
-                        while (reader.Read())
+                        if (!string.IsNullOrEmpty(reader["KAMPANYA_KODU"].TOSTRING()))
                         {
-                            if (!string.IsNullOrEmpty(reader["KAMPANYA_KODU"].TOSTRING()))
-                            {
-                                clsHopi.KampanyaIade kampanyaIade = new clsHopi.KampanyaIade();
-                                kampanyaIade.kampanyaKodu = reader["KAMPANYA_KODU"].TOSTRING();
-                                kampanyaIade.tutar = (reader["TUTAR"].TODECIMAL() - reader["INDIRIM"].TODECIMAL()).ROUNDTWO();
-                                kampanyaIade.iadeParacik = reader["KAZANILAN_PARACIK"].TODECIMAL().ROUNDTWO();
+                            clsHopi.KampanyaIade kampanyaIade = new clsHopi.KampanyaIade();
+                            kampanyaIade.kampanyaKodu = reader["KAMPANYA_KODU"].TOSTRING();
+                            kampanyaIade.tutar = (reader["TUTAR"].TODECIMAL() - reader["INDIRIM"].TODECIMAL()).ROUNDTWO();
+                            kampanyaIade.iadeParacik = reader["KAZANILAN_PARACIK"].TODECIMAL().ROUNDTWO();
 
-                                alisverisIadeBilgisi.kampanyalar.Add(kampanyaIade);
-                            }
-                            else
-                            {
-                                alisverisIadeBilgisi.transactionId = reader["TRANSACTION_ID"].TOSTRING();
-                                alisverisIadeBilgisi.kampanyasizTutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
-                                alisverisIadeBilgisi.kazanilanParacik = reader["HARCANAN_PARACIK"].TODECIMAL().ROUNDTWO();
-                                alisverisIadeBilgisi.odemeTransactionId = reader["ODEME_TRANSACTION_ID"].TOSTRING();
-                            }
-                        }
-                        reader.Close();
-                        cmd.Parameters.Clear();
-
-                        string strKampanyalar = "";
-                        if (alisverisIadeBilgisi.kampanyalar.Count > 0)
-                        {
-                            foreach (clsHopi.KampanyaIade kampanya in alisverisIadeBilgisi.kampanyalar)
-                            {
-                                if (!string.IsNullOrWhiteSpace(strKampanyalar)) strKampanyalar += ", ";
-                                strKampanyalar += "'" + kampanya.kampanyaKodu + "'";
-                            }
+                            alisverisIadeBilgisi.kampanyalar.Add(kampanyaIade);
                         }
                         else
                         {
-                            strKampanyalar = "''";
+                            alisverisIadeBilgisi.transactionId = reader["TRANSACTION_ID"].TOSTRING();
+                            alisverisIadeBilgisi.kampanyasizTutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
+                            alisverisIadeBilgisi.kazanilanParacik = reader["HARCANAN_PARACIK"].TODECIMAL().ROUNDTWO();
+                            alisverisIadeBilgisi.odemeTransactionId = reader["ODEME_TRANSACTION_ID"].TOSTRING();
                         }
+                    }
+                    reader.Close();
+                    cmd.Parameters.Clear();
 
-
-                        cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) AS TUTAR, " + //+ ISNULL(RC.HOPI_INDIRIM, CAST(0 AS FLOAT))
-                                                  "STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
-                                                  "FROM RESCEK AS RC " +
-                                                  "INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU) " +
-                                                  "WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO ";
-                        cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                        cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                        reader = cmd.ExecuteReader();
-                        while (reader.Read())
+                    string strKampanyalar = "";
+                    if (alisverisIadeBilgisi.kampanyalar.Count > 0)
+                    {
+                        foreach (clsHopi.KampanyaIade kampanya in alisverisIadeBilgisi.kampanyalar)
                         {
-                            clsHopi.Urun urun = new clsHopi.Urun();
-                            urun.barkod = reader["STOKKODU"].TOSTRING();
-                            if (!string.IsNullOrWhiteSpace(reader["KAMPANYA"].TOSTRING()))
-                                urun.kampanyaKodlari = reader["KAMPANYA"].TOSTRING().Split(',').ToList();
-                            urun.kdv = reader["KDV"].TOINT();
-                            urun.miktar = reader["MIKTAR"].TODECIMAL().ROUNDTWO();
-                            urun.tutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
-                            urun.x = reader["X"].TOINT();
-                            urun.siraNo = reader["SIRANO"].TOINT();
-
-                            alisverisIadeBilgisi.urunler.Add(urun);
+                            if (!string.IsNullOrWhiteSpace(strKampanyalar)) strKampanyalar += ", ";
+                            strKampanyalar += "'" + kampanya.kampanyaKodu + "'";
                         }
-                        reader.Close();
-                        cmd.Parameters.Clear();
+                    }
+                    else
+                    {
+                        strKampanyalar = "''";
+                    }
 
-                        clsHopi.AlisverisIadeResponse alisverisIadeResponse = clsHopiIslem.setIadeAlisverisBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, alisverisIadeBilgisi);
-                        if (alisverisIadeResponse.returnTrxId != 0)
+
+                    cmd.CommandText = "SELECT DISTINCT RC.STOKKODU, RC.SATICIKODU, RC.SIRANO, RC.X, RC.KDV, RC.MIKTAR, ISNULL(RC.MIKTAR * RC.SFIY, CAST(0 AS FLOAT)) AS TUTAR, " + //+ ISNULL(RC.HOPI_INDIRIM, CAST(0 AS FLOAT))
+                                              "STUFF(ISNULL((SELECT ',' + KOD FROM HOPI WHERE KOD IN (" + strKampanyalar + ") AND AKTIF = 1 AND ((STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU)) OR (ANAGRUP = SM.YEMEK_KODU1) OR (ISNULL(LTRIM(RTRIM(STOKKODU)), CAST('' AS VARCHAR)) = '' AND ISNULL(LTRIM(RTRIM(ANAGRUP)), CAST('' AS VARCHAR)) = '')) FOR XML PATH('')), CAST('' AS VARCHAR)), 1, 1, '') AS KAMPANYA " +
+                                              "FROM RESCEK AS RC " +
+                                              "INNER JOIN STKMAS AS SM ON SM.STOKKODU = ISNULL(RC.GARNITUR_MASTER_STOKKODU, RC.STOKKODU) " +
+                                              "WHERE RC.MASANO = @MASANO AND RC.CEKNO = @CEKNO ";
+                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                    reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        clsHopi.Urun urun = new clsHopi.Urun();
+                        urun.barkod = reader["STOKKODU"].TOSTRING();
+                        if (!string.IsNullOrWhiteSpace(reader["KAMPANYA"].TOSTRING()))
+                            urun.kampanyaKodlari = reader["KAMPANYA"].TOSTRING().Split(',').ToList();
+                        urun.kdv = reader["KDV"].TOINT();
+                        urun.miktar = reader["MIKTAR"].TODECIMAL().ROUNDTWO();
+                        urun.tutar = reader["TUTAR"].TODECIMAL().ROUNDTWO();
+                        urun.x = reader["X"].TOINT();
+                        urun.siraNo = reader["SIRANO"].TOINT();
+
+                        alisverisIadeBilgisi.urunler.Add(urun);
+                    }
+                    reader.Close();
+                    cmd.Parameters.Clear();
+
+                    clsHopi.AlisverisIadeResponse alisverisIadeResponse = clsHopiIslem.setIadeAlisverisBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, alisverisIadeBilgisi);
+                    if (alisverisIadeResponse.returnTrxId != 0)
+                    {
+                        if (clsHopiIslem.setIadeAlisverisBilgisiIslemiBitir(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, clsGenel.storeCode, alisverisIadeResponse.returnTrxId))
                         {
-                            if (clsHopiIslem.setIadeAlisverisBilgisiIslemiBitir(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, clsGenel.storeCode, alisverisIadeResponse.returnTrxId))
+                            if (alisverisIadeBilgisi.kazanilanParacik != 0)
+                                clsHopiIslem.setIadeEdilecekParacikBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, clsGenel.storeCode, alisverisIadeBilgisi.odemeTransactionId.TOULONG(), alisverisIadeBilgisi.kazanilanParacik);
+
+                            cmd.Transaction = cnn.BeginTransaction();
+
+                            try
                             {
-                                if (alisverisIadeBilgisi.kazanilanParacik != 0)
-                                    clsHopiIslem.setIadeEdilecekParacikBilgisi(clsGenel.kullaniciKoduWS, clsGenel.sifreWS, clsGenel.storeCode, alisverisIadeBilgisi.odemeTransactionId.TOULONG(), alisverisIadeBilgisi.kazanilanParacik);
+                                cmd.CommandText = "INSERT INTO HOPIIPT (MASANO, CEKNO, KAMPANYA_KODU, TUTAR, INDIRIM, KAZANILAN_PARACIK, HARCANAN_PARACIK, TRANSACTION_ID, BIRDID, ODEME_TRANSACTION_ID) " +
+                                                  "SELECT MASANO, CEKNO, KAMPANYA_KODU, TUTAR, INDIRIM, KAZANILAN_PARACIK, HARCANAN_PARACIK, TRANSACTION_ID, BIRDID, ODEME_TRANSACTION_ID FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
 
-                                cmd.Transaction = cnn.BeginTransaction();
+                                cmd.CommandText = "DELETE FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
 
-                                try
-                                {
-                                    cmd.CommandText = "INSERT INTO HOPIIPT (MASANO, CEKNO, KAMPANYA_KODU, TUTAR, INDIRIM, KAZANILAN_PARACIK, HARCANAN_PARACIK, TRANSACTION_ID, BIRDID, ODEME_TRANSACTION_ID) " +
-                                                      "SELECT MASANO, CEKNO, KAMPANYA_KODU, TUTAR, INDIRIM, KAZANILAN_PARACIK, HARCANAN_PARACIK, TRANSACTION_ID, BIRDID, ODEME_TRANSACTION_ID FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.ExecuteNonQuery();
-                                    cmd.Parameters.Clear();
+                                cmd.CommandText = "UPDATE RESCEK SET BIRDID = 0, KAMPANYA_KODU = '' WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
 
-                                    cmd.CommandText = "DELETE FROM HOPIHRY WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.ExecuteNonQuery();
-                                    cmd.Parameters.Clear();
+                                cmd.CommandText = "UPDATE RESCEK SET HOPI_INDIRIM = 0 WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
 
-                                    cmd.CommandText = "UPDATE RESCEK SET BIRDID = 0, KAMPANYA_KODU = '' WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.ExecuteNonQuery();
-                                    cmd.Parameters.Clear();
+                                cmd.CommandText = "DELETE FROM ODEME_TEMP WHERE CEKNO = @CEKNO AND KARTKODU = @KARTKODU";
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.Parameters.AddWithValue("@KARTKODU", clsGenel.hopiIndirimOdemeKodu);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
 
-                                    cmd.CommandText = "UPDATE RESCEK SET HOPI_INDIRIM = 0 WHERE MASANO = @MASANO AND CEKNO = @CEKNO";
-                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.ExecuteNonQuery();
-                                    cmd.Parameters.Clear();
+                                cmd.CommandText = "DELETE FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND KARTKODU = @KARTKODU";
+                                cmd.Parameters.AddWithValue("@MASANO", masaNo);
+                                cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
+                                cmd.Parameters.AddWithValue("@KARTKODU", clsGenel.hopiOdemeKodu);
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
 
-                                    cmd.CommandText = "DELETE FROM ODEME_TEMP WHERE CEKNO = @CEKNO AND KARTKODU = @KARTKODU";
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.Parameters.AddWithValue("@KARTKODU", clsGenel.hopiIndirimOdemeKodu);
-                                    cmd.ExecuteNonQuery();
-                                    cmd.Parameters.Clear();
+                                cmd.Transaction.Commit();
 
-                                    cmd.CommandText = "DELETE FROM RESCEK WHERE MASANO = @MASANO AND CEKNO = @CEKNO AND KARTKODU = @KARTKODU";
-                                    cmd.Parameters.AddWithValue("@MASANO", masaNo);
-                                    cmd.Parameters.AddWithValue("@CEKNO", adisyonBilgisi.adisyonNo);
-                                    cmd.Parameters.AddWithValue("@KARTKODU", clsGenel.hopiOdemeKodu);
-                                    cmd.ExecuteNonQuery();
-                                    cmd.Parameters.Clear();
+                                MessageBox.Show("İade işlemi başarılı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                                tsbYenile.PerformClick();
+                            }
+                            catch (Exception ex)
+                            {
+                                cmd.Transaction.Rollback();
 
-                                    cmd.Transaction.Commit();
-
-                                    MessageBox.Show("İade işlemi başarılı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-                                    tsbYenile.PerformClick();
-                                }
-                                catch (Exception ex)
-                                {
-                                    cmd.Transaction.Rollback();
-
-                                    MessageBox.Show("İade işlemi başarılı. Ancak veritabanına kaydederken hata oluştu." + Environment.NewLine + ex.Message, "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
-                                    tsbYenile.PerformClick();
-                                }
+                                MessageBox.Show("İade işlemi başarılı. Ancak veritabanına kaydederken hata oluştu." + Environment.NewLine + ex.Message, "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                                tsbYenile.PerformClick();
                             }
                         }
-
-                        cmd.Dispose();
-                        cnn.Close();
                     }
-                }
-                else
-                {
-                    MessageBox.Show("Bu masada daha önce hopi ödemesi/kazanımı yapılmamış.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
-                    tsbYenile.PerformClick();
+
+                    cmd.Dispose();
+                    cnn.Close();
                 }
             }
         }

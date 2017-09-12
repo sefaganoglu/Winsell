@@ -104,13 +104,13 @@
             this.colMiktar,
             this.colTutar});
             this.dgvStoklar.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvStoklar.Location = new System.Drawing.Point(0, 270);
+            this.dgvStoklar.Location = new System.Drawing.Point(0, 289);
             this.dgvStoklar.MultiSelect = false;
             this.dgvStoklar.Name = "dgvStoklar";
             this.dgvStoklar.RowHeadersVisible = false;
             this.dgvStoklar.RowHeadersWidth = 24;
             this.dgvStoklar.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvStoklar.Size = new System.Drawing.Size(296, 311);
+            this.dgvStoklar.Size = new System.Drawing.Size(296, 292);
             this.dgvStoklar.TabIndex = 6;
             // 
             // colStokAdi
@@ -145,7 +145,7 @@
             this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label3.Dock = System.Windows.Forms.DockStyle.Top;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
-            this.label3.Location = new System.Drawing.Point(0, 245);
+            this.label3.Location = new System.Drawing.Point(0, 264);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(296, 25);
             this.label3.TabIndex = 7;
@@ -166,7 +166,7 @@
             this.tsMasaIslemler.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
             this.tsMasaIslemler.Location = new System.Drawing.Point(0, 75);
             this.tsMasaIslemler.Name = "tsMasaIslemler";
-            this.tsMasaIslemler.Size = new System.Drawing.Size(296, 170);
+            this.tsMasaIslemler.Size = new System.Drawing.Size(296, 189);
             this.tsMasaIslemler.TabIndex = 5;
             this.tsMasaIslemler.Text = "toolStrip1";
             // 

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Xml.Linq;
 
-namespace Winsell.Hopi.API
+namespace Winsell.Hopi.API.HopiWS
 {
     public class WebServiceResult
     {
         public bool IsSuccess { get; set; }
-        public Exception Error { get; set; }
         public string ResultString { get; set; }
         public XDocument ResultXml { get; set; }
 
