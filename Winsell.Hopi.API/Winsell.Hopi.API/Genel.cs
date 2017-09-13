@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -9,16 +11,20 @@ namespace Winsell.Hopi.API
 {
     public static class Genel
     {
+
         public enum OdemeTipi
         {
             HopiTahsilat = 0,
             HopiIndirim = 1
         }
+        
+        public static string hopiWSDL;
+
 
         public static string numberSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-        public static string hopiWSDL = "";
+
         public static string connectionString = "";
-        
+
         public static string kampanyaServerName = "";
         public static string kampanyaDatabaseName = "";
         public static string kampanyaUserName = "";
@@ -38,14 +44,14 @@ namespace Winsell.Hopi.API
             cnn.Open();
             return cnn;
         }
-        
+
         public static SqlConnection createDBConnectionKampanya()
         {
             SqlConnection cnn = new SqlConnection("Data Source=" + kampanyaServerName + ";Persist Security Info=true;User Id=" + kampanyaUserName + ";Password=" + kampanyaPassword + ";Initial Catalog=" + kampanyaDatabaseName);
             cnn.Open();
             return cnn;
         }
-        
+
         public static object parametreOku(string strAlan, object oDefault = null)
         {
             object oReturn = oDefault;

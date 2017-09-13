@@ -31,7 +31,11 @@ namespace Winsell.Hopi.API.HopiWS
 
         public Dictionary<string, Dictionary<string, string>> Headers { get; set; }
 
-        public Dictionary<string, string> Params = new Dictionary<string, string>();
+
+
+        public List<Param> Params = new List<Param>();
+
+        //public Dictionary<string, string> Params = new Dictionary<string, string>();
 
 
         public WebServiceResult Invoke(bool encode)

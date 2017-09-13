@@ -91,6 +91,16 @@ namespace Winsell.Hopi.API
             return strResult;
         }
 
+        public static string TOSTRDECIMAL(this object o, string strDefault = "")
+        {
+            string strResult = strDefault;
+            if (o != null && o is DBNull == false)
+            {
+                strResult = o.ToString().Trim().Replace(',', '.');
+            }
+            return strResult;
+        }
+
         public static object ISNULL(this object o, object oDefault = null)
         {
             object oResult = oDefault;
@@ -103,6 +113,13 @@ namespace Winsell.Hopi.API
         {
             decimal dReturn = Math.Round(o, 2);
             return dReturn;
+        }
+
+
+        public static void Add(this List<HopiWS.Param> p, string key, string value)
+        {
+            HopiWS.Param param = new HopiWS.Param() { Key = key, Value = value };
+            p.Add(param);
         }
     }
 }

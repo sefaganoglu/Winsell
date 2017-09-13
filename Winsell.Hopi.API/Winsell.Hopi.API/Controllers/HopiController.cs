@@ -783,7 +783,7 @@ namespace Winsell.Hopi.API.Controllers
                     cmd.Parameters.AddWithValue("@HARCANAN_PARACIK", alisverisBilgisiHopi.kullanilacakParacik.ROUNDTWO());
                     cmd.Parameters.AddWithValue("@TRANSACTION_ID", alisverisBilgisiHopi.transactionId);
                     cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisiHopi.birdId);
-                    cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", alisverisResponse.odemeTransactionId);
+                    cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", webServiceResult.ResultAttachment.TOULONG());
                     cmd.ExecuteNonQuery();
                     cmd.Parameters.Clear();
 
@@ -798,7 +798,7 @@ namespace Winsell.Hopi.API.Controllers
                         cmd.Parameters.AddWithValue("@HARCANAN_PARACIK", alisverisBilgisiHopi.kullanilacakParacik.ROUNDTWO());
                         cmd.Parameters.AddWithValue("@TRANSACTION_ID", alisverisBilgisiHopi.transactionId);
                         cmd.Parameters.AddWithValue("@BIRDID", alisverisBilgisiHopi.birdId);
-                        cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", alisverisResponse.odemeTransactionId);
+                        cmd.Parameters.AddWithValue("@ODEME_TRANSACTION_ID", webServiceResult.ResultAttachment.TOULONG());
                         cmd.ExecuteNonQuery();
                         cmd.Parameters.Clear();
                     }

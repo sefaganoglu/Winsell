@@ -116,8 +116,6 @@ namespace Winsell.Hopi
 
             //KAMPANYA BİLGİLERİ
             List<HopiWS.UsedCampaignDetail> arrCampains = new List<HopiWS.UsedCampaignDetail>();
-
-            //Dictionary<int, decimal> cikarilacakTutarlar = new Dictionary<int, decimal>();
             foreach (clsHopi.Kampanya kampanya in alisverisBilgisi.kampanyalar)
             {
                 if (!string.IsNullOrWhiteSpace(kampanya.kampanyaKodu))
@@ -134,8 +132,8 @@ namespace Winsell.Hopi
                     {
                         HopiWS.AmountDetail adCampDetail = new HopiWS.AmountDetail
                         {
-                            Item = intKey, //Eğer KDV oranı gidiyorsa TOINT kdv tutarı gidiyorsa TODECIMAL yapılır.
-                            amount = kampanya.tutarlar[intKey].ROUNDTWO() //(v.SumTutar - cikarilacakTutar).ROUNDTWO(), //BURADA SORUN VAR
+                            Item = intKey, 
+                            amount = kampanya.tutarlar[intKey].ROUNDTWO() 
                         };
                         arrCampDetails.Add(adCampDetail);
                     }
@@ -172,7 +170,7 @@ namespace Winsell.Hopi
                 {
                     barcode = urun.barkod,
                     quantity = urun.miktar.ROUNDTWO(),
-                    amount = urun.tutar.ROUNDTWO(), //İNDİRİMLİ GÖRÜNMESİ GEREKİYORSA urun.indirimTutari ÇIKARILIR
+                    amount = urun.tutar.ROUNDTWO(),
                     campaign = urun.kampanyaKodlari.ToArray()
                 };
                 arrInfo.Add(tiInfo);
@@ -248,7 +246,7 @@ namespace Winsell.Hopi
             {
                 storeCode = alisverisIadeBilgisi.storeCode,
                 transactionId = alisverisIadeBilgisi.transactionId,
-                campaignFreeAmountSpecified = true,
+                campaignFreeAmountSpecified = alisverisIadeBilgisi.kampanyasizTutar != 0,
                 campaignFreeAmount = alisverisIadeBilgisi.kampanyasizTutar,
                 returnCampaignDetails = alisverisIadeBilgisi.kampanyalar.Select(kampanya => new ReturnCampaignDetail
                 {
