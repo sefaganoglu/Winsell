@@ -19,3 +19,4 @@ F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winse
 F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.AssemblyInfo.cs
 F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.dll
 F:\SEFA\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.pdb
+D:\Projects\visual studio\Winsell\Winsell.Hopi.API\Winsell.Hopi.Data\obj\Debug\netcoreapp2.0\Winsell.Hopi.Data.csprojResolveAssemblyReference.cache

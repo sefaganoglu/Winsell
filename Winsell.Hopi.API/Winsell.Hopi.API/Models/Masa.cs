@@ -15,5 +15,6 @@ namespace Winsell.Hopi.API.Models
         public int height { get; set; }
         public string yetki { get; set; }
         public Color color { get; set; }
+        public List<Stok> stoklar { get; set; }
     }
 }

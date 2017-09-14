@@ -42,7 +42,8 @@ namespace Winsell.Hopi.API.Controllers
                     yetki = reader["KullanilabilirBolme"].TOSTRING() + reader["KullanilabilirOdeme"].TOSTRING() + reader["KullanilabilirIade"].TOSTRING(),
                     color = (reader["KullanilabilirOdeme"].TOINT() == 1 ? Color.Salmon : Color.Silver),
                     height = 100,
-                    width = 100
+                    width = 100,
+                    stoklar = GetMasadakiStoklar(reader["MASANO"].TOINT())
                 };
 
                 listMasa.Add(masa);
